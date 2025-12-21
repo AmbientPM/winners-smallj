@@ -10,46 +10,62 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum WalletVerificationStatus {
+    PENDING
+    SUCCESS
+    CANCELED
+}
+
+enum MetalType {
+    SILVER
+    GOLD
+}
+
 model User {
     id               Int      @id @default(autoincrement())
     telegramId       BigInt   @unique @map("telegram_id")
     telegramUsername String?  @map("telegram_username")
     telegramName     String   @map("telegram_name")
-    xlmBalance       Float    @default(0) @map("xlm_balance")
     createdAt        DateTime @default(now()) @map("created_at")
     updatedAt        DateTime @updatedAt @map("updated_at")
 
-    wallets    Wallet[]
-    actionLogs ActionLog[]
+    wallets      Wallet[]
+    actionLogs   ActionLog[]
+    certificates Certificate[]
 
     @@map("users")
 }
 
 model Wallet {
-    id        Int    @id @default(autoincrement())
-    userId    Int    @map("user_id")
-    publicKey String @unique @map("public_key")
-    balance   Float  @default(0)
+    id                    Int                      @id @default(autoincrement())
+    userId                Int                      @map("user_id")
+    publicKey             String                   @unique @map("public_key")
+    isActive              Boolean                  @default(true) @map("is_active")
+    isDeleted             Boolean                  @default(false) @map("is_deleted")
+    verificationStatus    WalletVerificationStatus @default(PENDING) @map("verification_status")
+    verificationExpiresAt DateTime?                @map("verification_expires_at")
+    verificationAttempts  Int                      @default(0) @map("verification_attempts")
+    metadata              Json?
+    createdAt             DateTime                 @default(now()) @map("created_at")
+    updatedAt             DateTime                 @updatedAt @map("updated_at")
 
-    isActive  Boolean  @default(true) @map("is_active")
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+    balances WalletBalance[]
 
     @@map("wallets")
 }
 
 model Settings {
-    id             Int     @id @default(autoincrement())
-    depositAddress String? @map("deposit_address")
-    depositAmount  Float?  @map("deposit_amount")
-    issuerPublic   String? @map("issuer_public")
-    issuerSecret   String? @map("issuer_secret")
+    id                        Int     @id @default(autoincrement())
+    depositAddress            String? @map("deposit_address")
+    depositAmount             Float?  @map("deposit_amount")
+    sendingEnabled            Boolean @default(false) @map("sending_enabled")
+    purchaseDistributorPublic String? @map("purchase_distributor_public")
+    purchaseDistributorSecret String? @map("purchase_distributor_secret")
+    welcomeImageFileId        String? @map("welcome_image_file_id")
+    mainTokenHolders          Json?   @map("main_token_holders")
 
-    welcomeImageFileId String?  @map("welcome_image_file_id")
-    mainTokenHolders   Json?    @map("main_token_holders")
-    updatedAt          DateTime @updatedAt @map("updated_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     @@map("settings")
 }
@@ -67,4 +83,59 @@ model ActionLog {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@map("action_logs")
+}
+
+model Certificate {
+    id           Int       @id @default(autoincrement())
+    metalType    MetalType @map("metal_type")
+    serialNumber String    @unique @map("serial_number")
+    uniqueNumber String    @unique @map("unique_number")
+    createdAt    DateTime  @default(now()) @map("created_at")
+    updatedAt    DateTime  @updatedAt @map("updated_at")
+
+    user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId Int  @map("user_id")
+
+    @@map("certificates")
+}
+
+model Token {
+    id           Int      @id @default(autoincrement())
+    code         String   @unique // SILVER, GOLD
+    issuerPublic String?  @map("issuer_public")
+    issuerSecret String?  @map("issuer_secret")
+    isActive     Boolean  @default(true) @map("is_active")
+    createdAt    DateTime @default(now()) @map("created_at")
+    updatedAt    DateTime @updatedAt @map("updated_at")
+
+    walletBalances WalletBalance[]
+    prices         TokenPrice[]
+
+    @@map("tokens")
+}
+
+model WalletBalance {
+    id        Int      @id @default(autoincrement())
+    walletId  Int      @map("wallet_id")
+    tokenId   Int      @map("token_id")
+    balance   Float    @default(0)
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+    token  Token  @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+
+    @@unique([walletId, tokenId])
+    @@map("wallet_balances")
+}
+
+model TokenPrice {
+    id        Int      @id @default(autoincrement())
+    tokenId   Int      @map("token_id")
+    price     Float // Price in USD per troy ounce
+    createdAt DateTime @default(now()) @map("created_at")
+
+    token Token @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+
+    @@map("token_prices")
 }

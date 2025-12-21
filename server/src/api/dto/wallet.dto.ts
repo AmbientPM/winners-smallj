@@ -1,8 +1,8 @@
-import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsInitDataRequired } from '../validators/init-data.validator';
 
 export class AddWalletDto {
-    @IsOptional()
-    @IsString()
+    @IsInitDataRequired()
     initData?: string;
 
     @IsNotEmpty()
@@ -11,8 +11,7 @@ export class AddWalletDto {
 }
 
 export class VerifyWalletDto {
-    @IsOptional()
-    @IsString()
+    @IsInitDataRequired()
     initData?: string;
 
     @IsNotEmpty()
@@ -21,8 +20,16 @@ export class VerifyWalletDto {
 }
 
 export class DeleteWalletDto {
-    @IsOptional()
-    @IsString()
+    @IsInitDataRequired()
+    initData?: string;
+
+    @IsNotEmpty()
+    @IsNumber()
+    walletId: number;
+}
+
+export class SetActiveWalletDto {
+    @IsInitDataRequired()
     initData?: string;
 
     @IsNotEmpty()

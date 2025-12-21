@@ -9,19 +9,16 @@ import { Label } from "@/shared/components/ui/label";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { Plus, Copy, CheckCircle2, AlertCircle, Clock, Shield } from "lucide-react";
 import { VerificationData } from "@/shared/types/api";
+import { useAddWallet, useVerifyWallet } from "@/shared/hooks/use-api";
 
-interface AddWalletDialogProps {
-    onWalletAdded?: () => void;
-}
-
-
-
-export function AddWalletDialog({ onWalletAdded }: AddWalletDialogProps) {
+export function AddWalletDialog() {
     const [isOpen, setIsOpen] = useState(false);
     const [walletAddress, setWalletAddress] = useState("");
     const [verificationData, setVerificationData] = useState<VerificationData | null>(null);
-    const [isVerifying, setIsVerifying] = useState(false);
     const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
+
+    const addWalletMutation = useAddWallet();
+    const verifyWalletMutation = useVerifyWallet();
 
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -30,77 +27,41 @@ export function AddWalletDialog({ onWalletAdded }: AddWalletDialogProps) {
     };
 
     const handleAddWallet = async () => {
-        try {
-            // TODO: Replace with actual API call
-            // const response = await fetch('/api/wallets', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({ publicKey: walletAddress })
-            // });
-            // const data = await response.json();
-
-            // Mock response for now
-            const mockResponse = {
-                success: true,
-                needsVerification: true,
-                verificationCode: `NWO${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-                depositAddress: 'GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-                minAmount: 1,
-                wallet: {
-                    id: Date.now(),
-                    publicKey: walletAddress
+        addWalletMutation.mutate(walletAddress, {
+            onSuccess: (response) => {
+                if (response.needsVerification && response.verificationCode && response.depositAddress) {
+                    setVerificationData({
+                        walletId: response.wallet.id,
+                        verificationCode: response.verificationCode,
+                        depositAddress: response.depositAddress,
+                        minAmount: response.minAmount || 1
+                    });
+                    setWalletAddress("");
+                } else {
+                    // Wallet already verified
+                    setWalletAddress("");
+                    setIsOpen(false);
                 }
-            };
-
-            setVerificationData({
-                walletId: mockResponse.wallet.id,
-                verificationCode: mockResponse.verificationCode,
-                depositAddress: mockResponse.depositAddress,
-                minAmount: mockResponse.minAmount
-            });
-
-            setWalletAddress("");
-        } catch (error) {
-            console.error("Error adding wallet:", error);
-        }
+            },
+        });
     };
 
     const handleVerifyWallet = async () => {
         if (!verificationData) return;
 
-        setIsVerifying(true);
-        try {
-            // TODO: Replace with actual API call
-            // const response = await fetch(`/api/wallets/${verificationData.walletId}/verify`, {
-            //     method: 'POST'
-            // });
-            // const data = await response.json();
-
-            // Mock verification check
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // For demo, randomly verify or show pending
-            const verified = Math.random() > 0.5;
-
-            if (verified) {
-                toast.success('Wallet verified successfully! Staking rewards will start accumulating.', {
-                    duration: 4000,
-                    icon: '✅',
-                });
-                setVerificationData(null);
-                setIsOpen(false);
-                onWalletAdded?.();
-            } else {
-                toast.error('Payment not received yet. Please send 1 XLM with the verification code.', {
-                    duration: 4000,
-                    icon: '⏳',
-                });
-            }
-        } catch (error) {
-            console.error("Error verifying wallet:", error);
-        } finally {
-            setIsVerifying(false);
-        }
+        verifyWalletMutation.mutate(verificationData.walletId, {
+            onSuccess: (response) => {
+                if (response.verified && response.verificationStatus === 'SUCCESS') {
+                    setVerificationData(null);
+                    setIsOpen(false);
+                } else {
+                    toast.error(response.message || 'Payment not received yet. Please send 1 XLM with the verification code.', {
+                        duration: 4000,
+                        icon: '⏳',
+                    });
+                }
+            },
+        });
     };
 
     const closeDialog = () => {
@@ -112,7 +73,7 @@ export function AddWalletDialog({ onWalletAdded }: AddWalletDialogProps) {
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button className="w-full gap-2 h-11">
+                <Button className="w-full gap-2 h-12 bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-amber-950 font-bold rounded-xl border border-amber-400/30 shadow-lg">
                     <Plus className="w-4 h-4" />
                     Add Wallet
                 </Button>
@@ -261,9 +222,9 @@ export function AddWalletDialog({ onWalletAdded }: AddWalletDialogProps) {
                             <Button
                                 className="flex-1"
                                 onClick={handleVerifyWallet}
-                                disabled={isVerifying}
+                                disabled={verifyWalletMutation.isPending}
                             >
-                                {isVerifying ? (
+                                {verifyWalletMutation.isPending ? (
                                     <>
                                         <Clock className="w-4 h-4 mr-2 animate-spin" />
                                         Checking...

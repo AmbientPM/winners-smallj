@@ -4,8 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Context } from '../interfaces/context.interface';
 import { IsPrivateGuard } from '../guards/is-private.guard';
 import { IsAdminGuard } from '../guards/is-admin.guard';
-import { userMenuKeyboard, adminStakingKeyboard } from '../keyboards/keyboards';
-import { getStakingInfo } from '../utils/messages';
+import { userMenuKeyboard, adminMenuKeyboard } from '../keyboards/keyboards';
 import { MessageManager } from '../utils/message-manager';
 import { PrismaService } from '../../database/prisma.service';
 import * as path from 'path';
@@ -62,11 +61,13 @@ export class MenuUpdate {
             .map((id) => parseInt(id.trim()));
 
         if (adminIds.includes(ctx.from!.id)) {
-            const info = await getStakingInfo(this.prisma);
-            await ctx.reply(info, {
-                parse_mode: 'HTML',
-                ...adminStakingKeyboard,
-            });
+            await ctx.reply(
+                '<b>⚙️ Admin Panel</b>\n\nManage your bot settings:',
+                {
+                    parse_mode: 'HTML',
+                    ...adminMenuKeyboard,
+                }
+            );
         }
     }
 

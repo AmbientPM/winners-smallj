@@ -5,6 +5,48 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('🌱 Starting seed...');
 
+    // Create tokens first
+    const silverToken = await prisma.token.upsert({
+        where: { code: 'SILVER' },
+        update: {},
+        create: {
+            code: 'SILVER',
+            issuerPublic: 'GBQAV7QSBJHWVYPP5OHINHA2SSTNI7DN4QI2JSSZ6ZYE3QECGF576TNQ',
+            issuerSecret: 'SBAXEOQ5VYTMZ52MQ2YDAFFHYZ6SR7HBBJTU6ICAAZRZUMKHVPUUBCUI',
+            isActive: true,
+        },
+    });
+    console.log('✅ Silver token created:', silverToken);
+
+    const goldToken = await prisma.token.upsert({
+        where: { code: 'GOLD' },
+        update: {},
+        create: {
+            code: 'GOLD',
+            issuerPublic: 'GBQAV7QSBJHWVYPP5OHINHA2SSTNI7DN4QI2JSSZ6ZYE3QECGF576TNQ',
+            issuerSecret: 'SBAXEOQ5VYTMZ52MQ2YDAFFHYZ6SR7HBBJTU6ICAAZRZUMKHVPUUBCUI',
+            isActive: true,
+        },
+    });
+    console.log('✅ Gold token created:', goldToken);
+
+    // Create token prices
+    await prisma.tokenPrice.create({
+        data: {
+            tokenId: silverToken.id,
+            price: 30.0,
+        },
+    });
+    console.log('✅ Silver price created');
+
+    await prisma.tokenPrice.create({
+        data: {
+            tokenId: goldToken.id,
+            price: 2700.0,
+        },
+    });
+    console.log('✅ Gold price created');
+
     // Create mock user
     const mockUser = await prisma.user.upsert({
         where: { telegramId: BigInt(999999999) },
@@ -13,7 +55,6 @@ async function main() {
             telegramId: BigInt(999999999),
             telegramUsername: 'mock_user',
             telegramName: 'Mock User',
-            xlmBalance: 1000,
         },
     });
     console.log('✅ Mock user created:', mockUser);
@@ -26,7 +67,6 @@ async function main() {
             telegramId: BigInt(111111111),
             telegramUsername: 'test_user1',
             telegramName: 'Test User 1',
-            xlmBalance: 500,
         },
     });
     console.log('✅ Test user 1 created:', testUser1);
@@ -38,7 +78,6 @@ async function main() {
             telegramId: BigInt(222222222),
             telegramUsername: 'test_user2',
             telegramName: 'Test User 2',
-            xlmBalance: 750,
         },
     });
     console.log('✅ Test user 2 created:', testUser2);
@@ -50,26 +89,44 @@ async function main() {
         create: {
             userId: mockUser.id,
             publicKey: 'GB5JRPP2FDUDMUSQAQPBN345NFBWRGODPSASETSQ2EUWXB4XE5AEVWGV',
-            balance: 1000,
             isActive: true,
+            verificationStatus: 'SUCCESS',
         },
     });
     console.log('✅ Wallet 1 created:', wallet1);
 
-    // Create billing details for mock user
-    const billingDetails = await prisma.billingDetails.upsert({
-        where: { userId: mockUser.id },
+    // Create wallet balances for mock user
+    await prisma.walletBalance.upsert({
+        where: {
+            walletId_tokenId: {
+                walletId: wallet1.id,
+                tokenId: silverToken.id,
+            },
+        },
         update: {},
         create: {
-            userId: mockUser.id,
-            fullName: 'Mock User Full Name',
-            address: '123 Test Street',
-            city: 'Test City',
-            country: 'Test Country',
-            zipCode: '12345',
+            walletId: wallet1.id,
+            tokenId: silverToken.id,
+            balance: 125.5,
         },
     });
-    console.log('✅ Billing details created:', billingDetails);
+    console.log('✅ Silver balance for wallet 1 created');
+
+    await prisma.walletBalance.upsert({
+        where: {
+            walletId_tokenId: {
+                walletId: wallet1.id,
+                tokenId: goldToken.id,
+            },
+        },
+        update: {},
+        create: {
+            walletId: wallet1.id,
+            tokenId: goldToken.id,
+            balance: 1.5,
+        },
+    });
+    console.log('✅ Gold balance for wallet 1 created');
 
     // Create settings
     const settings = await prisma.settings.upsert({
@@ -78,157 +135,12 @@ async function main() {
         create: {
             depositAddress: 'GBQAV7QSBJHWVYPP5OHINHA2SSTNI7DN4QI2JSSZ6ZYE3QECGF576TNQ',
             depositAmount: 10,
-            issuerPublic: 'GBQAV7QSBJHWVYPP5OHINHA2SSTNI7DN4QI2JSSZ6ZYE3QECGF576TNQ',
-            issuerSecret: 'SBAXEOQ5VYTMZ52MQ2YDAFFHYZ6SR7HBBJTU6ICAAZRZUMKHVPUUBCUI',
             sendingEnabled: true,
-            xrpDepositAddress: 'rXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-            xrpNwoPrice: 0.5,
             purchaseDistributorPublic: 'GAOTTUMH3BR3FBMSMDINWFSGGZZVLNNEMQJVF4IFRH624J63JASJ5HYY',
             purchaseDistributorSecret: 'SB57D32DTBCCAC3PU3KRMUNGVX22B4P55BIR4B6BKD6GEN7IT6NLPPOE',
-            rewardsTier: {
-                defaultPercent: 5,
-                levels: [
-                    { minamount: 0, maxamount: 1000, percent: 5 },
-                    { minamount: 1000, maxamount: 5000, percent: 7 },
-                    { minamount: 5000, maxamount: 10000, percent: 10 },
-                ],
-            },
-            swapTier: {
-                defaultPercent: 2,
-                levels: [
-                    { minamount: 0, maxamount: 100, percent: 2 },
-                    { minamount: 100, maxamount: 500, percent: 1.5 },
-                    { minamount: 500, maxamount: 1000, percent: 1 },
-                ],
-            },
         },
     });
     console.log('✅ Settings created:', settings);
-
-    // Create staking assets
-    const stakingAsset1 = await prisma.stakingAsset.upsert({
-        where: {
-            assetCode_assetIssuer: {
-                assetCode: 'NWO',
-                assetIssuer:
-                    'GBQAV7QSBJHWVYPP5OHINHA2SSTNI7DN4QI2JSSZ6ZYE3QECGF576TNQ',
-            },
-        },
-        update: {},
-        create: {
-            assetCode: 'NWO',
-            assetIssuer: 'GBQAV7QSBJHWVYPP5OHINHA2SSTNI7DN4QI2JSSZ6ZYE3QECGF576TNQ',
-            price: 1.5,
-            tier: {
-                defaultPercent: 10,
-                levels: [
-                    { minamount: 0, maxamount: 1000, percent: 10 },
-                    { minamount: 1000, maxamount: 5000, percent: 15 },
-                    { minamount: 5000, maxamount: 10000, percent: 20 },
-                ],
-            },
-            premium: 0,
-        },
-    });
-    console.log('✅ Staking asset 1 created:', stakingAsset1);
-
-    const stakingAsset2 = await prisma.stakingAsset.upsert({
-        where: {
-            assetCode_assetIssuer: {
-                assetCode: 'USDC',
-                assetIssuer: 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF',
-            },
-        },
-        update: {},
-        create: {
-            assetCode: 'USDC',
-            assetIssuer: 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF',
-            price: 1.0,
-            tier: {
-                defaultPercent: 5,
-                levels: [
-                    { minamount: 0, maxamount: 1000, percent: 5 },
-                    { minamount: 1000, maxamount: 5000, percent: 7 },
-                    { minamount: 5000, maxamount: 10000, percent: 10 },
-                ],
-            },
-            premium: 5,
-        },
-    });
-    console.log('✅ Staking asset 2 created:', stakingAsset2);
-
-    // Create distributors
-    const distributor1 = await prisma.distributor.upsert({
-        where: { id: 1 },
-        update: {},
-        create: {
-            publicKey: 'GAOTTUMH3BR3FBMSMDINWFSGGZZVLNNEMQJVF4IFRH624J63JASJ5HYY',
-            secretKey: 'SB57D32DTBCCAC3PU3KRMUNGVX22B4P55BIR4B6BKD6GEN7IT6NLPPOE',
-            isActive: true,
-        },
-    });
-    console.log('✅ Distributor 1 created:', distributor1);
-
-    const distributor2 = await prisma.distributor.upsert({
-        where: { id: 2 },
-        update: {},
-        create: {
-            publicKey: 'GDDARRZ4M2RCZTSTVFAEG2KYCHPTVGXKKYUCOWZSGMG2IKHP5OTC6LRN',
-            secretKey: 'SCC26OAERB5LMSAG5KVOK44LMV5IWDLZYMRIASRWNSLJ7SY3QGMW2KY7',
-            isActive: true,
-        },
-    });
-    console.log('✅ Distributor 2 created:', distributor2);
-
-    // Create companies
-    const company1 = await prisma.company.upsert({
-        where: { id: 1 },
-        update: {},
-        create: {
-            name: 'Test Company 1',
-            logoUrl: 'https://example.com/logo1.png',
-            addingAmount: 100,
-        },
-    });
-    console.log('✅ Company 1 created:', company1);
-
-    const company2 = await prisma.company.upsert({
-        where: { id: 2 },
-        update: {},
-        create: {
-            name: 'Test Company 2',
-            logoUrl: 'https://example.com/logo2.png',
-            addingAmount: 200,
-        },
-    });
-    console.log('✅ Company 2 created:', company2);
-
-    // Create liquidity entries
-    const liquidity1 = await prisma.liquidity.upsert({
-        where: { id: 1 },
-        update: {},
-        create: {
-            milestone: 1000,
-            startAmount: 0,
-            addingAmount: 100,
-            endAmount: 10000,
-            distributorPublic: 'GAOTTUMH3BR3FBMSMDINWFSGGZZVLNNEMQJVF4IFRH624J63JASJ5HYY',
-        },
-    });
-    console.log('✅ Liquidity 1 created:', liquidity1);
-
-    const liquidity2 = await prisma.liquidity.upsert({
-        where: { id: 2 },
-        update: {},
-        create: {
-            milestone: 2000,
-            startAmount: 0,
-            addingAmount: 50,
-            endAmount: 5000,
-            distributorPublic: 'GDDARRZ4M2RCZTSTVFAEG2KYCHPTVGXKKYUCOWZSGMG2IKHP5OTC6LRN',
-        },
-    });
-    console.log('✅ Liquidity 2 created:', liquidity2);
 
     // Create action logs
     const actionLog1 = await prisma.actionLog.create({

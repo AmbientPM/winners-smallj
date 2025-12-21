@@ -48,48 +48,49 @@
 }
 
 :root {
-  --radius: 0.75rem;
-  /* Dark/Black Silver-themed color palette */
-  --background: oklch(0.12 0.005 240);
-  /* Very dark background */
-  --foreground: oklch(0.95 0.01 240);
-  /* Light foreground */
-  --card: oklch(0.15 0.01 240);
-  /* Dark card */
-  --card-foreground: oklch(0.95 0.01 240);
-  --popover: oklch(0.15 0.01 240);
-  --popover-foreground: oklch(0.95 0.01 240);
-  /* Silver primary colors */
-  --primary: oklch(0.75 0.02 240);
-  /* Silver/gray-blue */
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.25 0.01 240);
-  /* Dark silver */
-  --secondary-foreground: oklch(0.95 0.01 240);
-  --muted: oklch(0.20 0.01 240);
-  --muted-foreground: oklch(0.60 0.01 240);
-  --accent: oklch(0.75 0.08 200);
-  /* Subtle blue-silver accent */
-  --accent-foreground: oklch(0.98 0 0);
+  --radius: 0.875rem;
+  /* Premium Dark Gold-themed color palette */
+  --background: oklch(0.08 0.01 60);
+  /* Deep dark with warm undertone */
+  --foreground: oklch(0.95 0.02 80);
+  /* Warm light foreground */
+  --card: oklch(0.12 0.015 60);
+  /* Dark card with gold tint */
+  --card-foreground: oklch(0.95 0.02 80);
+  --popover: oklch(0.12 0.015 60);
+  --popover-foreground: oklch(0.95 0.02 80);
+  /* Gold primary colors */
+  --primary: oklch(0.75 0.15 85);
+  /* Rich gold */
+  --primary-foreground: oklch(0.10 0.02 60);
+  --secondary: oklch(0.18 0.02 60);
+  /* Dark gold-brown */
+  --secondary-foreground: oklch(0.90 0.05 80);
+  --muted: oklch(0.16 0.015 60);
+  --muted-foreground: oklch(0.55 0.03 80);
+  --accent: oklch(0.70 0.12 85);
+  /* Bright gold accent */
+  --accent-foreground: oklch(0.10 0.02 60);
   --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0.25 0.01 240);
-  --input: oklch(0.25 0.01 240);
-  --ring: oklch(0.75 0.02 240);
-  --chart-1: oklch(0.65 0.15 220);
-  /* Silver-blue */
-  --chart-2: oklch(0.70 0.12 180);
-  /* Silver-cyan */
-  --chart-3: oklch(0.398 0.07 227.392);
+  --border: oklch(0.22 0.03 75);
+  /* Gold-tinted border */
+  --input: oklch(0.18 0.02 60);
+  --ring: oklch(0.75 0.15 85);
+  --chart-1: oklch(0.75 0.15 85);
+  /* Gold */
+  --chart-2: oklch(0.65 0.10 60);
+  /* Bronze */
+  --chart-3: oklch(0.60 0.05 80);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.15 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.75 0.02 240);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.20 0 0);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.25 0 0);
-  --sidebar-ring: oklch(0.75 0 0);
+  --sidebar: oklch(0.10 0.015 60);
+  --sidebar-foreground: oklch(0.95 0.02 80);
+  --sidebar-primary: oklch(0.75 0.15 85);
+  --sidebar-primary-foreground: oklch(0.10 0.02 60);
+  --sidebar-accent: oklch(0.16 0.02 60);
+  --sidebar-accent-foreground: oklch(0.90 0.05 80);
+  --sidebar-border: oklch(0.22 0.03 75);
+  --sidebar-ring: oklch(0.75 0.15 85);
 }
 
 .dark {
@@ -452,17 +453,17 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(192, 192, 192, 0.25) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(212, 175, 55, 0.22) 0%, transparent 50%),
-    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(169, 169, 169, 0.18) 0%, transparent 40%),
+    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(212, 175, 55, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(184, 134, 11, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(139, 90, 43, 0.08) 0%, transparent 40%),
     linear-gradient(135deg,
-      oklch(0.10 0.005 240) 0%,
-      oklch(0.14 0.015 220) 25%,
-      oklch(0.16 0.025 85) 50%,
-      oklch(0.12 0.01 200) 75%,
-      oklch(0.10 0.005 240) 100%);
+      oklch(0.06 0.01 60) 0%,
+      oklch(0.10 0.02 70) 25%,
+      oklch(0.08 0.015 55) 50%,
+      oklch(0.10 0.02 65) 75%,
+      oklch(0.06 0.01 60) 100%);
   background-size: 400% 400%;
-  animation: metallic-flow 15s ease-in-out infinite;
+  animation: metallic-flow 20s ease-in-out infinite;
 }
 
 .animated-bg::before {
@@ -475,12 +476,12 @@
   max-width: 400px;
   max-height: 400px;
   background: radial-gradient(circle,
-      rgba(192, 192, 192, 0.35) 0%,
-      rgba(169, 169, 169, 0.2) 40%,
+      rgba(212, 175, 55, 0.15) 0%,
+      rgba(184, 134, 11, 0.08) 40%,
       transparent 70%);
   border-radius: 50%;
-  filter: blur(50px);
-  animation: metallic-orb-1 12s ease-in-out infinite;
+  filter: blur(60px);
+  animation: metallic-orb-1 15s ease-in-out infinite;
 }
 
 .animated-bg::after {
@@ -493,20 +494,20 @@
   max-width: 350px;
   max-height: 350px;
   background: radial-gradient(circle,
-      rgba(212, 175, 55, 0.3) 0%,
-      rgba(184, 134, 11, 0.15) 40%,
+      rgba(184, 134, 11, 0.12) 0%,
+      rgba(139, 90, 43, 0.06) 40%,
       transparent 70%);
   border-radius: 50%;
-  filter: blur(40px);
-  animation: metallic-orb-2 14s ease-in-out infinite;
+  filter: blur(50px);
+  animation: metallic-orb-2 18s ease-in-out infinite;
 }
 
 .animated-bg-overlay {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 50% 40% at 70% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 50% at 30% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+    radial-gradient(ellipse 50% 40% at 70% 20%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 50% at 30% 80%, rgba(184, 134, 11, 0.04) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -521,10 +522,10 @@
   max-height: 500px;
   transform: translate(-50%, -50%);
   background: radial-gradient(circle,
-      rgba(192, 192, 192, 0.08) 0%,
-      rgba(128, 128, 128, 0.04) 30%,
+      rgba(212, 175, 55, 0.05) 0%,
+      rgba(139, 90, 43, 0.02) 30%,
       transparent 60%);
   border-radius: 50%;
-  filter: blur(80px);
-  animation: metallic-orb-3 22s ease-in-out infinite;
+  filter: blur(100px);
+  animation: metallic-orb-3 25s ease-in-out infinite;
 }

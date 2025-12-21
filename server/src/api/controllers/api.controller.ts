@@ -9,9 +9,11 @@ import {
 } from '@nestjs/common';
 import { TelegramAuthService } from '../services/telegram-auth.service';
 import { UserService } from '../services/user.service';
-import { WalletService } from '../services/wallet.service';
+import { WalletService } from '../services/wallet/wallet.service';
+
 import { UserStatisticsDto } from '../dto/user-statistics.dto';
-import { AddWalletDto, VerifyWalletDto, DeleteWalletDto } from '../dto/wallet.dto';
+import { AddWalletDto, VerifyWalletDto, DeleteWalletDto, SetActiveWalletDto } from '../dto/wallet.dto';
+
 import { PrismaService } from '../../database/prisma.service';
 
 @Controller()
@@ -23,6 +25,7 @@ export class ApiController {
         private readonly telegramAuth: TelegramAuthService,
         private readonly userService: UserService,
         private readonly walletService: WalletService,
+
     ) {
         this.isDev = process.env.IS_DEV === 'true';
     }
@@ -91,4 +94,16 @@ export class ApiController {
         const user = await this.validateAndGetUser(body.initData);
         return this.walletService.deleteWallet(user.id, body.walletId);
     }
+
+    @Post('/setActiveWallet')
+    async setActiveWallet(@Body(ValidationPipe) body: SetActiveWalletDto) {
+        const user = await this.validateAndGetUser(body.initData);
+        return this.walletService.setActiveWallet(user.id, body.walletId);
+    }
+
+
+
+
+
+
 }

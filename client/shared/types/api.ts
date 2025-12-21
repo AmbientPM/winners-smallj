@@ -32,37 +32,79 @@ export const METALS: Record<MetalType, MetalConfig> = {
     }
 };
 
-// Metal Balance Data
-export interface MetalBalance {
-    metal: MetalType;
-    balance: number; // Token balance (SILVER or GOLD token on Stellar)
-    price: number; // Price per ounce of metal
-    usdValue: number; // balance * price
+// Wallet Data
+export interface WalletData {
+    id: number;
+    userId: number;
+    publicKey: string;
+    balance: number;
+    isActive: boolean;
+    verificationStatus: 'PENDING' | 'SUCCESS' | 'CANCELED';
+    verificationExpiresAt: string | null;
+    verificationAttempts: number;
+    metadata: any;
+    createdAt: string;
+    updatedAt: string;
+}
+
+// Certificate Data
+export interface CertificateData {
+    metalType: MetalType;
+    serialNumber: string;
+    uniqueNumber: string;
+    tokenAmount: number;
+}
+
+// Balance Data
+export interface MetalBalanceData {
+    tokens: number;
+    usd: number;
+    price: number;
+}
+
+export interface BalancesData {
+    silver: MetalBalanceData;
+    gold: MetalBalanceData;
+    total: {
+        usd: number;
+    };
+}
+
+// User Data
+export interface UserData {
+    id: number;
+    telegramId: string;
+    telegramUsername: string | null;
+    telegramName: string;
+    createdAt: string;
+    updatedAt: string;
+    wallets: WalletData[];
+    certificates: CertificateData[];
+    balances: BalancesData;
 }
 
 // User Statistics Response
+export interface UserStatisticsResponse {
+    success: true;
+    user: UserData;
+}
+
+// Legacy types (for backward compatibility)
+export interface MetalBalance {
+    metal: MetalType;
+    balance: number;
+    price: number;
+    usdValue: number;
+}
+
 export interface UserStatistics {
     wallets: WalletData[];
-    balances: MetalBalance[]; // Array of balances for each metal
+    balances: MetalBalance[];
     statistics: {
         totalWallets: number;
         totalTokens: number;
         totalUsdValue: number;
     };
-}
-
-export interface WalletData {
-    id: number;
-    address: string;
-    balance: number;
-    isActive: boolean;
-}
-
-// Centralized Certificate Data
-export interface CertificateData {
-    metalType: MetalType;
-    serialNumber?: string;
-    tokenAmount?: number; // Amount of tokens (SILVER or GOLD)
 }
 
 export interface VerificationData {

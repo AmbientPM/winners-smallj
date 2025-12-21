@@ -9,6 +9,7 @@ export function MetalCertificate({
     metalType,
     serialNumber = "A00000000B",
     tokenAmount = 0,
+    uniqueNumber = '000000001',
     className
 }: CertificateData & { className?: string }) {
     const [mounted, setMounted] = useState(false);
@@ -22,19 +23,20 @@ export function MetalCertificate({
 
     const isGold = metalType === 'gold';
     const bgGradient = isGold
-        ? 'from-amber-100 via-yellow-200 to-amber-100'
-        : 'from-slate-100 via-slate-200 to-zinc-100';
+        ? 'from-amber-50 via-yellow-100 to-amber-50'
+        : 'from-slate-50 via-slate-100 to-zinc-50';
     const borderColor = isGold ? 'border-amber-700/40' : 'border-slate-700/40';
     const textColor = isGold ? 'text-amber-900' : 'text-slate-900';
     const badgeBg = isGold ? 'bg-amber-700/10' : 'bg-slate-700/10';
     const badgeBorder = isGold ? 'border-amber-700/40' : 'border-slate-700/40';
     const borderAccent = isGold ? 'border-amber-700/40' : 'border-slate-700/40';
     const strokeColor = isGold ? '#78350f' : '#334155';
+    const sealColor = isGold ? 'text-amber-600' : 'text-slate-600';
 
     return (
-        <div className={cn("relative aspect-[1.6/1] max-w-md mx-auto", className)}>
+        <div className={cn("relative aspect-[1.75/1] w-full mx-auto @container", className)}>
             {/* Certificate Container - Card Format */}
-            <div className={cn("relative w-full h-full overflow-hidden rounded-xl border-2 shadow-2xl bg-gradient-to-br", borderColor, bgGradient)}>
+            <div className={cn("relative w-full h-full overflow-hidden rounded-[1cqw] border shadow-xl bg-gradient-to-br", borderColor, bgGradient)}>
                 {/* Background Image - Base Layer */}
                 <div
                     className="absolute inset-0 opacity-10"
@@ -54,161 +56,165 @@ export function MetalCertificate({
                 />
 
                 {/* Engraving Texture Overlay */}
-                <svg className="absolute inset-0 w-full h-full opacity-30 mix-blend-multiply pointer-events-none z-10" xmlns="http://www.w3.org/2000/svg">
+                <svg className="absolute inset-0 w-full h-full opacity-20 mix-blend-multiply pointer-events-none z-10" xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                        <pattern id={`engraving-bg-${metalType}`} x="0" y="0" width="2" height="2" patternUnits="userSpaceOnUse">
-                            <line x1="0" y1="0" x2="2" y2="2" stroke={strokeColor} strokeWidth="0.3" />
+                        <pattern id={`engraving-lines-${metalType}`} x="0" y="0" width="1.5" height="1.5" patternUnits="userSpaceOnUse">
+                            <line x1="0" y1="0" x2="1.5" y2="1.5" stroke={strokeColor} strokeWidth="0.2" />
                         </pattern>
                     </defs>
-                    <rect width="100%" height="100%" fill={`url(#engraving-bg-${metalType})`} />
+                    <rect width="100%" height="100%" fill={`url(#engraving-lines-${metalType})`} />
                 </svg>
 
                 {/* Guilloche Pattern Border */}
-                <div className="absolute inset-0 pointer-events-none opacity-60">
+                <div className="absolute inset-0 pointer-events-none opacity-50">
                     <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                         <defs>
-                            <pattern id={`guilloche-${metalType}`} x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+                            <pattern id={`guilloche-${metalType}`} x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
                                 <path
-                                    d="M0,15 Q7.5,7.5 15,15 T30,15"
+                                    d="M0,10 Q5,5 10,10 T20,10"
                                     stroke={strokeColor}
-                                    strokeWidth="0.4"
+                                    strokeWidth="0.3"
                                     fill="none"
-                                    opacity="0.12"
+                                    opacity="0.3"
                                 />
                                 <path
-                                    d="M15,0 Q22.5,7.5 15,15 T15,30"
+                                    d="M10,0 Q15,5 10,10 T10,20"
                                     stroke={strokeColor}
-                                    strokeWidth="0.4"
+                                    strokeWidth="0.3"
                                     fill="none"
-                                    opacity="0.12"
+                                    opacity="0.3"
                                 />
+                                <circle cx="10" cy="10" r="1" fill={strokeColor} opacity="0.2" />
+                            </pattern>
+                            <pattern id={`guilloche-border-${metalType}`} x="0" y="0" width="15" height="15" patternUnits="userSpaceOnUse">
+                                <path d="M0,7.5 Q3.75,3.75 7.5,7.5 T15,7.5" stroke={strokeColor} strokeWidth="0.5" fill="none" opacity="0.4" />
+                                <path d="M7.5,0 Q11.25,3.75 7.5,7.5 T7.5,15" stroke={strokeColor} strokeWidth="0.5" fill="none" opacity="0.4" />
                             </pattern>
                         </defs>
                         <rect width="100%" height="100%" fill={`url(#guilloche-${metalType})`} />
+                        <rect x="2" y="2" width="calc(100% - 4px)" height="calc(100% - 4px)" strokeWidth="12" stroke={`url(#guilloche-border-${metalType})`} fill="none" rx="10" />
                     </svg>
                 </div>
 
-                {/* Main Content - Horizontal Card Layout */}
-                <div className="relative h-full flex flex-col p-4">
-                    {/* Header - Compact */}
-                    <div className={cn("flex items-center justify-between border-b pb-2 mb-3", borderAccent)}>
-                        <Badge variant="outline" className={cn(badgeBg, textColor, badgeBorder, "text-[9px]")} style={{ fontFamily: 'var(--font-courier)' }}>
-                            {serialNumber}
-                        </Badge>
-                        <div className="text-center flex-1">
-                            <svg width="100%" height="40" viewBox="0 0 250 40" className="overflow-visible">
-                                <defs>
-                                    <path id={`curve-${metalType}`} d="M 30,35 Q 125,8 220,35" fill="transparent" />
-                                </defs>
-                                <text
-                                    className="font-bold tracking-[0.2em]"
-                                    style={{
-                                        fontFamily: 'var(--font-cinzel)',
-                                        fontSize: '16px',
-                                        fill: strokeColor,
-                                        paintOrder: 'stroke fill',
-                                        stroke: '#000',
-                                        strokeWidth: '0.5px'
-                                    }}
-                                >
-                                    <textPath href={`#curve-${metalType}`} startOffset="50%" textAnchor="middle">
-                                        UNITED STATES
-                                    </textPath>
-                                </text>
-                            </svg>
-                            <p className={cn("text-[9px] uppercase tracking-widest -mt-2", isGold ? 'text-amber-700/80' : 'text-slate-700/80')}>{metalConfig.name} Certificate</p>
+                {/* Main Content */}
+                <div className="relative h-full flex flex-col p-[2.5cqw] z-20">
+                    {/* Header */}
+                    <div className={cn("flex items-center justify-between border-b pb-[1cqw] mb-[1cqw]", borderAccent)}>
+                        <div className="text-center">
+                            <p className="text-[1.8cqw] uppercase tracking-wider" style={{ fontFamily: 'var(--font-eb-garamond)' }}>Series</p>
+                            <p className="text-[2.2cqw] font-bold" style={{ fontFamily: 'var(--font-courier)' }}>2025</p>
                         </div>
-                        <Badge variant="outline" className={cn(badgeBg, textColor, badgeBorder, "text-[9px]")} style={{ fontFamily: 'var(--font-courier)' }}>
-                            2025
-                        </Badge>
+                        <div className="text-center flex-1 px-[1cqw]">
+                            <p className={cn("text-[4cqw] font-bold tracking-[0.05em]", textColor)} style={{ fontFamily: 'var(--font-cinzel)' }}>
+                                {metalConfig.name} Certificate
+                            </p>
+                            <p className={cn("text-[1.6cqw] uppercase tracking-widest -mt-[0.3cqw]", isGold ? 'text-amber-700/80' : 'text-slate-700/80')}>
+                                United States Treasury
+                            </p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-[1.8cqw] uppercase tracking-wider text-red-800" style={{ fontFamily: 'var(--font-eb-garamond)' }}>Voucher No.</p>
+                            <p className="text-[2.2cqw] font-bold text-red-700" style={{ fontFamily: 'var(--font-courier)' }}>{uniqueNumber}</p>
+                        </div>
                     </div>
 
-                    {/* Main Body - Horizontal Layout */}
-                    <div className="flex gap-3 flex-1">
-                        {/* Certificate Text - Compact */}
-                        <div className="flex-1 flex flex-col justify-center py-2 space-y-4">
-                            <div className="text-center">
-                                <p className={cn("text-[10px] uppercase tracking-widest mb-2", isGold ? 'text-amber-700/90' : 'text-slate-700/90')} style={{ fontFamily: 'var(--font-eb-garamond)' }}>This Certifies That</p>
-                                <div className={cn("border-2 rounded-lg px-4 py-2.5 bg-white/60 inline-block shadow-sm", borderAccent)}>
-                                    <p className={cn("text-3xl font-bold leading-none", textColor)} style={{ fontFamily: 'var(--font-cinzel)' }}>
-                                        {tokenAmount.toFixed(2)}
-                                    </p>
-                                    <p className={cn("text-[11px] mt-1 tracking-wide", isGold ? 'text-amber-700/80' : 'text-slate-700/80')} style={{ fontFamily: 'var(--font-eb-garamond)' }}>{metalConfig.symbol} OUNCES</p>
-                                </div>
-                            </div>
-
-                            <div className="text-center px-2">
-                                <p className={cn("text-[9px] leading-relaxed mb-1.5", isGold ? 'text-amber-700/75' : 'text-slate-700/75')} style={{ fontFamily: 'var(--font-eb-garamond)' }}>
-                                    Are deposited in the Treasury of the
-                                </p>
-                                <p className={cn("text-[12px] font-bold uppercase tracking-widest mb-1.5", textColor)} style={{ fontFamily: 'var(--font-cinzel)' }}>
-                                    {metalConfig.name} Ounce Reserve
-                                </p>
-                                <p className={cn("text-[9px] leading-relaxed", isGold ? 'text-amber-700/75' : 'text-slate-700/75')} style={{ fontFamily: 'var(--font-eb-garamond)' }}>
-                                    Payable to the bearer on demand
-                                </p>
+                    {/* Main Body */}
+                    <div className="flex-1 grid grid-cols-12 gap-[1.5cqw]">
+                        {/* Left Section */}
+                        <div className="col-span-3 flex flex-col items-center justify-between">
+                            <div className={cn("w-[18cqw] h-[18cqw] border rounded-full overflow-hidden bg-white/50 relative shadow-inner", borderAccent)}>
+                                <img
+                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Great_Seal_of_the_United_States_%28obverse%29.svg/1200px-Great_Seal_of_the_United_States_%28obverse%29.svg.png"
+                                    alt="Great Seal of the United States"
+                                    className="absolute inset-0 w-full h-full object-contain p-[1cqw] opacity-80"
+                                    style={{ filter: isGold ? 'sepia(0.5) saturate(1.2) hue-rotate(5deg)' : 'grayscale(1) contrast(1.1)' }}
+                                />
                             </div>
                         </div>
 
-                        {/* Portrait Section - Smaller */}
-                        <div className="flex-shrink-0 flex flex-col items-center gap-2">
-                            <div className={cn("w-24 h-28 border-2 rounded overflow-hidden bg-gradient-to-br relative",
-                                borderAccent,
-                                isGold ? 'from-amber-200 to-amber-300' : 'from-slate-200 to-slate-300'
-                            )}>
-                                {/* Trump Portrait */}
-                                <img
-                                    src="https://assets.bwbx.io/images/users/iqjWHBFdfxIU/i0tuSai1hrs4/v0/640x-1.jpg"
-                                    alt="Trump Portrait"
-                                    className="absolute inset-0 w-full h-full object-cover grayscale opacity-80"
-                                />
-                                {/* Engraving effect overlay */}
-                                <svg className="absolute inset-0 w-full h-full opacity-30 mix-blend-multiply" xmlns="http://www.w3.org/2000/svg">
+                        {/* Center Section */}
+                        <div className="col-span-6 flex flex-col justify-center items-center text-center">
+                            <div className={cn("border-y my-[1cqw] py-[1.5cqw] px-[2.5cqw] bg-white/30", borderAccent)}>
+                                <p className={cn("text-[6cqw] font-bold leading-none", textColor)} style={{ fontFamily: 'var(--font-cinzel)' }}>
+                                    {tokenAmount.toFixed(2)}
+                                </p>
+                                <p className={cn("text-[2cqw] mt-[0.5cqw] tracking-wide uppercase", isGold ? 'text-amber-700/80' : 'text-slate-700/80')} style={{ fontFamily: 'var(--font-eb-garamond)' }}>
+                                    Fine {metalConfig.name} {metalConfig.symbol} Ounces
+                                </p>
+                            </div>
+                            <p className={cn("text-[1.8cqw] leading-relaxed px-[1cqw]", isGold ? 'text-amber-700/75' : 'text-slate-700/75')} style={{ fontFamily: 'var(--font-eb-garamond)' }}>
+                                Payable to the bearer on demand as authorized by law.
+                            </p>
+                        </div>
+
+                        {/* Right Section */}
+                        <div className="col-span-3 flex flex-col items-center justify-between">
+                            <div className={cn("w-[18cqw] h-[18cqw] flex items-center justify-center", sealColor)}>
+                                <svg className="w-full h-full" viewBox="0 0 100 100">
                                     <defs>
-                                        <pattern id={`engraving-portrait-${metalType}`} x="0" y="0" width="2" height="2" patternUnits="userSpaceOnUse">
-                                            <line x1="0" y1="0" x2="2" y2="2" stroke={strokeColor} strokeWidth="0.3" />
-                                        </pattern>
+                                        <path id={`seal-text-top-${metalType}`} d="M 8,50 A 42,42 0 0,1 92,50" fill="none" />
+                                        <path id={`seal-text-bottom-${metalType}`} d="M 92,50 A 42,42 0 0,1 8,50" fill="none" />
                                     </defs>
-                                    <rect width="100%" height="100%" fill={`url(#engraving-portrait-${metalType})`} />
+                                    <circle cx="50" cy="50" r="47" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.7" />
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 1.5" opacity="0.5" />
+                                    <text x="50" y="56" textAnchor="middle" className="font-bold" fill="currentColor" style={{ fontFamily: 'var(--font-cinzel)', fontSize: '20px' }}>
+                                        {metalConfig.symbol}
+                                    </text>
+                                    <text className="uppercase" fill="currentColor" style={{ fontFamily: 'var(--font-eb-garamond)', fontSize: '3.8px', letterSpacing: '0.3px' }}>
+                                        <textPath href={`#seal-text-top-${metalType}`} startOffset="50%" textAnchor="middle">
+                                            DEPARTMENT OF THE TREASURY
+                                        </textPath>
+                                    </text>
+                                    <text className="uppercase" fill="currentColor" style={{ fontFamily: 'var(--font-eb-garamond)', fontSize: '4.5px', fontWeight: 'bold' }}>
+                                        <textPath href={`#seal-text-bottom-${metalType}`} startOffset="50%" textAnchor="middle">
+                                            ★ 1789 ★
+                                        </textPath>
+                                    </text>
                                 </svg>
-                                {/* Portrait frame shadow */}
-                                <div className="absolute inset-0 shadow-inner pointer-events-none" />
                             </div>
-
-                            {/* Signature */}
-                            <div className="w-24 text-center">
-                                <img
-                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Donald_Trump_Signature.svg/1200px-Donald_Trump_Signature.svg.png"
-                                    alt="Signature"
-                                    className="h-5 w-auto mx-auto grayscale opacity-70"
-                                />
-                                <div className={cn("border-t mt-1", borderAccent)}>
-                                    <p className={cn("text-[6px] uppercase tracking-wide mt-0.5 leading-tight", isGold ? 'text-amber-700/60' : 'text-slate-700/60')} style={{ fontFamily: 'var(--font-eb-garamond)' }}>
-                                        Secretary
-                                    </p>
-                                </div>
-                            </div>
+                            <Badge variant="outline" className={cn(badgeBg, textColor, badgeBorder, "text-[1.8cqw] w-full justify-center px-[0.5cqw]")} style={{ fontFamily: 'var(--font-courier)' }}>
+                                {serialNumber}
+                            </Badge>
                         </div>
                     </div>
-                </div>
 
-                {/* Watermark */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="transform -rotate-12 opacity-5">
-                        <p className={cn("text-4xl font-bold", textColor)} style={{ fontFamily: 'var(--font-cinzel)' }}>
-                            CLAIM
-                        </p>
-                        <p className={cn("text-lg text-center -mt-1", textColor)} style={{ fontFamily: 'var(--font-cinzel)' }}>
-                            COMING SOON
-                        </p>
+                    {/* Footer */}
+                    <div className={cn("flex items-end justify-between border-t pt-[1cqw] mt-[1cqw]", borderAccent)}>
+                        <div className="w-[22cqw] text-center">
+                            <img
+                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Donald_Trump_Signature.svg/1200px-Donald_Trump_Signature.svg.png"
+                                alt="Signature"
+                                className="h-[3cqw] w-auto mx-auto grayscale opacity-70"
+                                style={{ filter: isGold ? 'invert(15%) sepia(50%) saturate(800%) hue-rotate(350deg)' : 'invert(20%) sepia(10%) saturate(500%) hue-rotate(180deg)' }}
+                            />
+                            <div className={cn("border-t mt-[0.5cqw]", borderAccent)}>
+                                <p className={cn("text-[1.3cqw] uppercase tracking-wide mt-[0.3cqw] leading-tight", isGold ? 'text-amber-700/60' : 'text-slate-700/60')} style={{ fontFamily: 'var(--font-eb-garamond)' }}>
+                                    Treasurer of the United States
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="w-[22cqw] text-center">
+                            <img
+                                src="https://upload.wikimedia.org/wikipedia/commons/2/2a/John_Snow_signature.png"
+                                alt="Secretary Signature"
+                                className="h-[3cqw] w-auto mx-auto grayscale opacity-70"
+                                style={{ filter: isGold ? 'invert(15%) sepia(50%) saturate(800%) hue-rotate(350deg)' : 'invert(20%) sepia(10%) saturate(500%) hue-rotate(180deg)' }}
+                            />
+                            <div className={cn("border-t mt-[0.5cqw]", borderAccent)}>
+                                <p className={cn("text-[1.3cqw] uppercase tracking-wide mt-[0.3cqw] leading-tight", isGold ? 'text-amber-700/60' : 'text-slate-700/60')} style={{ fontFamily: 'var(--font-eb-garamond)' }}>
+                                    Secretary of the Treasury
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {/* Decorative Corners */}
-                <div className={cn("absolute top-1.5 left-1.5 w-6 h-6 border-t-2 border-l-2 rounded-tl", borderAccent)} />
-                <div className={cn("absolute top-1.5 right-1.5 w-6 h-6 border-t-2 border-r-2 rounded-tr", borderAccent)} />
-                <div className={cn("absolute bottom-1.5 left-1.5 w-6 h-6 border-b-2 border-l-2 rounded-bl", borderAccent)} />
-                <div className={cn("absolute bottom-1.5 right-1.5 w-6 h-6 border-b-2 border-r-2 rounded-br", borderAccent)} />
+                <div className={cn("absolute top-[0.8cqw] left-[0.8cqw] w-[3cqw] h-[3cqw] border-t border-l rounded-tl", borderAccent)} />
+                <div className={cn("absolute top-[0.8cqw] right-[0.8cqw] w-[3cqw] h-[3cqw] border-t border-r rounded-tr", borderAccent)} />
+                <div className={cn("absolute bottom-[0.8cqw] left-[0.8cqw] w-[3cqw] h-[3cqw] border-b border-l rounded-bl", borderAccent)} />
+                <div className={cn("absolute bottom-[0.8cqw] right-[0.8cqw] w-[3cqw] h-[3cqw] border-b border-r rounded-br", borderAccent)} />
             </div>
         </div>
     );

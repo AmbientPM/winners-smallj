@@ -4,8 +4,6 @@ import "./globals.css";
 import { BottomNav } from "@/shared/components/shared/bottom-nav";
 import { AnimatedIngotsBackground } from "@/shared/components/shared/animated-ingots-background";
 import { Toaster } from "react-hot-toast";
-import { TelegramProvider } from "@/shared/components/providers/telegram-provider";
-import { QueryProvider } from "@/shared/components/providers/query-provider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -64,14 +62,11 @@ export default function RootLayout({
           <div className="animated-bg-overlay" />
         </div>
         {/* Animated falling ingots */}
-        <QueryProvider>
-          <TelegramProvider>
-            <div className="pb-20 relative z-0">
-              {children}
-            </div>
-            <BottomNav />
-          </TelegramProvider>
-        </QueryProvider>
+        <AnimatedIngotsBackground />
+        <div className="pb-20 relative z-0">
+          {children}
+        </div>
+        <BottomNav />
         <Toaster
           position="top-center"
           toastOptions={{

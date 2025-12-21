@@ -12,7 +12,6 @@ export interface Context extends TelegrafContext {
         telegramId: bigint;
         telegramUsername: string | null;
         telegramName: string;
-        xlmBalance: number;
         createdAt: Date;
         updatedAt: Date;
     };

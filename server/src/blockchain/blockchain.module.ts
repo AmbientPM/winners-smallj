@@ -1,18 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { StellarService } from './services/stellar.service';
-import { SilverPriceService } from './services/silver-price.service';
+import { StakingService } from './services/staking.service';
 import { DatabaseModule } from '../database/database.module';
 
 @Module({
     imports: [ConfigModule, DatabaseModule],
     providers: [
         StellarService,
-        SilverPriceService,
+        StakingService,
     ],
     exports: [
         StellarService,
-        SilverPriceService,
+        StakingService,
     ],
 })
 export class BlockchainModule { }

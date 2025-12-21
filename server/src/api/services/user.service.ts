@@ -1,22 +1,44 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { SilverPriceService } from '../../blockchain/services/silver-price.service';
-import { StellarService } from '../../blockchain/services/stellar.service';
+import { MetalType } from '@prisma/client';
 
 @Injectable()
 export class UserService {
-    constructor(
-        private readonly prisma: PrismaService,
-        private readonly silverPrice: SilverPriceService,
-        private readonly stellar: StellarService,
-    ) { }
+    constructor(private readonly prisma: PrismaService) { }
+
+    private generateSerialNumber(): string {
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const firstLetter = letters[Math.floor(Math.random() * letters.length)];
+        const lastLetter = letters[Math.floor(Math.random() * letters.length)];
+        const numbers = Math.floor(Math.random() * 100000000).toString().padStart(8, '0');
+        return `${firstLetter}${numbers}${lastLetter}`;
+    }
+
+    private generateUniqueNumber(): string {
+        return Math.floor(10000 + Math.random() * 90000).toString();
+    }
 
     async getUserStatistics(userId: number) {
-        const userWithRelations = await this.prisma.user.findUnique({
+        let userWithRelations = await this.prisma.user.findUnique({
             where: { id: userId },
             include: {
                 wallets: {
-                    where: { isActive: true },
+                    where: {
+                        isDeleted: false,
+                    },
+                    include: {
+                        balances: {
+                            include: {
+                                token: true,
+                            },
+                        },
+                    },
+
+                },
+                certificates: {
+                    orderBy: {
+                        createdAt: 'desc'
+                    }
                 },
             },
         });
@@ -25,110 +47,141 @@ export class UserService {
             throw new HttpException('User not found', HttpStatus.NOT_FOUND);
         }
 
-        // Get silver price data
-        const silverPriceData = await this.silverPrice.getSilverPrice();
+        // Check if user has certificates, if not - create them
+        if (userWithRelations.certificates.length === 0) {
+            // Create certificates for both metal types
+            await this.prisma.certificate.createMany({
+                data: [
+                    {
+                        userId: userWithRelations.id,
+                        metalType: MetalType.SILVER,
+                        serialNumber: this.generateSerialNumber(),
+                        uniqueNumber: this.generateUniqueNumber(),
+                    },
+                    {
+                        userId: userWithRelations.id,
+                        metalType: MetalType.GOLD,
+                        serialNumber: this.generateSerialNumber(),
+                        uniqueNumber: this.generateUniqueNumber(),
+                    }
+                ]
+            });
 
-        // Get settings with token info
-        const settings = await this.prisma.settings.findFirst();
+            // Refetch user with certificates
+            userWithRelations = await this.prisma.user.findUnique({
+                where: { id: userId },
+                include: {
+                    wallets: {
+                        where: {
+                            isDeleted: false,
+                        },
+                        include: {
+                            balances: {
+                                include: {
+                                    token: true,
+                                },
+                            },
+                        },
+                    },
+                    certificates: {
+                        orderBy: {
+                            createdAt: 'desc'
+                        }
+                    },
+                },
+            });
 
-        // Calculate total token balance across all active wallets
-        let totalTokenBalance = 0;
-        const walletsWithBalances = [];
-
-        for (const wallet of userWithRelations.wallets) {
-            try {
-                // Get balance from Stellar for each wallet
-                const balance = settings?.issuerPublic
-                    ? await this.stellar.getBalance(wallet.publicKey, {
-                        code: 'SILVER', // Silver token code
-                        issuer: settings.issuerPublic,
-                    })
-                    : 0;
-
-                totalTokenBalance += balance;
-                walletsWithBalances.push({
-                    ...wallet,
-                    balance,
-                });
-            } catch (error) {
-                // If wallet doesn't exist or has error, set balance to 0
-                walletsWithBalances.push({
-                    ...wallet,
-                    balance: 0,
-                });
+            if (!userWithRelations) {
+                throw new HttpException('User not found after certificate creation', HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
 
-        // Calculate USD value (token balance * silver price per ounce)
-        const usdBalance = totalTokenBalance * silverPriceData.price;
+        // Calculate balances only from the active wallet
+        let silverBalance = 0;
+        let goldBalance = 0;
 
-        return {
-            wallets: walletsWithBalances,
-            balance: totalTokenBalance,
-            usdBalance,
-            silverPrice: silverPriceData.price,
-            silverPriceChange24h: silverPriceData.chp,
-            statistics: {
-                totalWallets: walletsWithBalances.length,
-                totalTokens: totalTokenBalance,
-                totalUsdValue: usdBalance,
-            },
-        };
-    }
+        const activeWallet = userWithRelations.wallets.find(w => w.isActive);
 
-    async depositToCard(userId: number, amount: number) {
-        if (amount <= 0) {
-            throw new HttpException('Invalid amount', HttpStatus.BAD_REQUEST);
+        if (activeWallet) {
+            for (const balance of activeWallet.balances) {
+                if (balance.token.code === 'SILVER') {
+                    silverBalance += balance.balance;
+                } else if (balance.token.code === 'GOLD') {
+                    goldBalance += balance.balance;
+                }
+            }
         }
 
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId },
-        });
-
-        if (!user) {
-            throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-        }
-
-        const updatedUser = await this.prisma.user.update({
-            where: { id: userId },
-            data: {
-                xlmBalance: user.xlmBalance + amount,
+        // Get latest prices
+        const silverToken = await this.prisma.token.findUnique({
+            where: { code: 'SILVER' },
+            include: {
+                prices: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                },
             },
         });
 
-        return {
-            success: true,
-            newBalance: updatedUser.xlmBalance,
-        };
-    }
-
-    async withdrawFromCard(userId: number, amount: number) {
-        if (amount <= 0) {
-            throw new HttpException('Invalid amount', HttpStatus.BAD_REQUEST);
-        }
-
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId },
-        });
-
-        if (!user) {
-            throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-        }
-
-        if (user.xlmBalance < amount) {
-            throw new HttpException('Insufficient balance', HttpStatus.BAD_REQUEST);
-        }
-
-        const updatedUser = await this.prisma.user.update({
-            where: { id: userId },
-            data: {
-                xlmBalance: user.xlmBalance - amount,
+        const goldToken = await this.prisma.token.findUnique({
+            where: { code: 'GOLD' },
+            include: {
+                prices: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                },
             },
         });
+
+        const silverPrice = silverToken?.prices[0]?.price || 0;
+        const goldPrice = goldToken?.prices[0]?.price || 0;
+
+        const silverBalanceUSD = silverBalance * silverPrice;
+        const goldBalanceUSD = goldBalance * goldPrice;
+        const totalBalanceUSD = silverBalanceUSD + goldBalanceUSD;
 
         return {
             success: true,
-            newBalance: updatedUser.xlmBalance,
+            user: {
+                id: userWithRelations.id,
+                telegramId: userWithRelations.telegramId.toString(),
+                telegramUsername: userWithRelations.telegramUsername,
+                telegramName: userWithRelations.telegramName,
+
+                wallets: userWithRelations.wallets.map(wallet => ({
+                    id: wallet.id,
+                    publicKey: wallet.publicKey,
+                    isActive: wallet.isActive,
+                    verificationStatus: wallet.verificationStatus,
+
+
+                })),
+                certificates: userWithRelations.certificates.map(cert => ({
+                    metalType: cert.metalType.toLowerCase(),
+                    serialNumber: cert.serialNumber,
+                    uniqueNumber: cert.uniqueNumber,
+                    tokenAmount: cert.metalType === MetalType.SILVER
+                        ? silverBalance
+                        : goldBalance
+                })),
+                balances: {
+                    silver: {
+                        tokens: silverBalance,
+                        usd: silverBalanceUSD,
+                        price: silverPrice
+                    },
+                    gold: {
+                        tokens: goldBalance,
+                        usd: goldBalanceUSD,
+                        price: goldPrice
+                    },
+                    total: {
+                        usd: totalBalanceUSD
+                    }
+                }
+            }
         };
     }
+
+
 }
