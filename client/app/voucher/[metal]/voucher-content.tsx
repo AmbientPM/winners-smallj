@@ -38,7 +38,7 @@ export function VoucherContent({ metalType }: VoucherContentProps) {
                     <div className="flex-1">
                         <h1 className={cn(
                             "text-xl font-bold",
-                            isGold 
+                            isGold
                                 ? "bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 bg-clip-text text-transparent"
                                 : "bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 bg-clip-text text-transparent"
                         )} style={{ fontFamily: 'var(--font-cinzel)' }}>
@@ -138,7 +138,7 @@ export function VoucherContent({ metalType }: VoucherContentProps) {
                         disabled
                         className={cn(
                             "py-3 px-4 rounded-xl font-medium text-sm cursor-not-allowed border",
-                            isGold 
+                            isGold
                                 ? "bg-amber-950/30 text-amber-200/30 border-amber-500/10"
                                 : "bg-slate-900/30 text-slate-200/30 border-slate-500/10"
                         )}
@@ -149,7 +149,7 @@ export function VoucherContent({ metalType }: VoucherContentProps) {
                         disabled
                         className={cn(
                             "py-3 px-4 rounded-xl font-medium text-sm cursor-not-allowed border",
-                            isGold 
+                            isGold
                                 ? "bg-amber-950/30 text-amber-200/30 border-amber-500/10"
                                 : "bg-slate-900/30 text-slate-200/30 border-slate-500/10"
                         )}

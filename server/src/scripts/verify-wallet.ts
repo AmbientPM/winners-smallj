@@ -8,13 +8,13 @@ const CONFIG = {
     // Кошелек который верифицируем
     WALLET_PUBLIC: 'GDAGRCYKIHFDIE4TBUQBFJKN4CJZJVY3NEMTIP3FRDQOO2XT7G2T2ONR',
     WALLET_SECRET: 'SD43CPJWPRSZJOV6YPFPHZLU3AJOLJJFJ4DJNSR3NBM4J32DVMAGDGRA',
-    
+
     // Адрес куда отправлять
     DEPOSIT_ADDRESS: 'GB7QJF4D44OTW5YL3MUPX76K4L43B2EI47KS7G2N2MZTVGNX7B2Y6NDU',
-    
+
     // Код верификации
     VERIFICATION_CODE: 'NWO809211843',
-    
+
     // Сумма для отправки
     AMOUNT: 1,
 };
@@ -35,7 +35,7 @@ async function main() {
 
     try {
         const wallet = Keypair.fromSecret(CONFIG.WALLET_SECRET);
-        
+
         console.log('📋 Информация:');
         console.log(`   Кошелек: ${wallet.publicKey()}`);
         console.log(`   Deposit Address: ${CONFIG.DEPOSIT_ADDRESS}`);
@@ -45,7 +45,7 @@ async function main() {
         // Проверка что кошелек активирован
         console.log('🔍 Проверка активации кошелька...');
         const walletExists = await stellarService.checkPublicKey(wallet.publicKey());
-        
+
         if (!walletExists) {
             console.error(`❌ Кошелек ${wallet.publicKey()} не активирован на тестнете!`);
             console.log('\nПерейдите на https://laboratory.stellar.org/#account-creator');
@@ -59,7 +59,7 @@ async function main() {
         console.log('💰 Проверка баланса...');
         const balance = await stellarService.getBalance(wallet.publicKey(), Asset.native());
         console.log(`   Текущий баланс: ${balance} XLM`);
-        
+
         if (balance < CONFIG.AMOUNT) {
             console.error(`❌ Недостаточно средств! Требуется минимум ${CONFIG.AMOUNT} XLM`);
             console.log('\nПополните кошелек на https://laboratory.stellar.org/#account-creator\n');
@@ -74,7 +74,7 @@ async function main() {
         console.log(`   Кому: ${CONFIG.DEPOSIT_ADDRESS}`);
         console.log(`   Сумма: ${CONFIG.AMOUNT} XLM`);
         console.log(`   Memo: ${CONFIG.VERIFICATION_CODE}\n`);
-        
+
         const txHash = await stellarService.sendTokens(
             wallet,
             CONFIG.AMOUNT,
@@ -82,7 +82,7 @@ async function main() {
             CONFIG.DEPOSIT_ADDRESS,
             CONFIG.VERIFICATION_CODE,
         );
-        
+
         console.log(`✅ Платеж отправлен!`);
         console.log(`   TX Hash: ${txHash}\n`);
         console.log(`   Просмотр: https://stellar.expert/explorer/testnet/tx/${txHash}\n`);

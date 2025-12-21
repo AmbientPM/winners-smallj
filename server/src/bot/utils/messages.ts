@@ -2,7 +2,7 @@ import { PrismaService } from '../../database/prisma.service';
 
 export async function getStakingInfo(prisma: PrismaService): Promise<string> {
     const settings = await prisma.settings.findFirst();
-    
+
     // Get SILVER token for issuer info
     const silverToken = await prisma.token.findUnique({
         where: { code: 'SILVER' },
