@@ -48,7 +48,7 @@ export default function WalletsPage() {
             <div className="max-w-lg mx-auto p-4 space-y-4">
                 {/* Header */}
                 <div className="py-6">
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 bg-clip-text text-transparent mb-1" style={{ fontFamily: 'var(--font-cinzel)' }}>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 bg-clip-text text-transparent mb-1" style={{ fontFamily: 'var(--font-raleway)' }}>
                         My Wallets
                     </h1>
                     <p className="text-sm text-amber-200/50">

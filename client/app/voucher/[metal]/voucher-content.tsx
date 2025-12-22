@@ -41,26 +41,11 @@ export function VoucherContent({ metalType }: VoucherContentProps) {
                             isGold
                                 ? "bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 bg-clip-text text-transparent"
                                 : "bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 bg-clip-text text-transparent"
-                        )} style={{ fontFamily: 'var(--font-cinzel)' }}>
+                        )} style={{ fontFamily: 'var(--font-raleway)' }}>
                             {metalConfig.icon} {metalConfig.name} Voucher
                         </h1>
                         <p className="text-xs text-amber-200/50">Physical bullion claim certificate</p>
                     </div>
-                </div>
-
-                {/* Coming Soon Badge */}
-                <div className="flex justify-center">
-                    <Badge
-                        variant="outline"
-                        className={cn(
-                            "text-sm px-4 py-2 rounded-full",
-                            isGold
-                                ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
-                                : "bg-slate-500/10 text-slate-300 border-slate-500/30"
-                        )}
-                    >
-                        Coming Soon
-                    </Badge>
                 </div>
 
                 {/* Certificate */}

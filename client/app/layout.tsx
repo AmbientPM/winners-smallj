@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display, EB_Garamond, Cinzel, Courier_Prime } from "next/font/google";
+import { Montserrat, Roboto, Quicksand, Raleway, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/shared/components/shared/bottom-nav";
 import { AnimatedIngotsBackground } from "@/shared/components/shared/animated-ingots-background";
@@ -7,36 +7,36 @@ import { Toaster } from "react-hot-toast";
 import { TelegramProvider } from "@/shared/components/providers/telegram-provider";
 import { QueryProvider } from "@/shared/components/providers/query-provider";
 
-const inter = Inter({
-  variable: "--font-inter",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+const roboto = Roboto({
+  variable: "--font-roboto",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "900"],
+  weight: ["300", "400", "500", "700"],
   display: "swap",
 });
 
-const ebGaramond = EB_Garamond({
-  variable: "--font-eb-garamond",
+const quicksand = Quicksand({
+  variable: "--font-quicksand",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const cinzel = Cinzel({
-  variable: "--font-cinzel",
+const raleway = Raleway({
+  variable: "--font-raleway",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "900"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const courierPrime = Courier_Prime({
-  variable: "--font-courier",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
   subsets: ["latin"],
   weight: ["400", "700"],
   display: "swap",
@@ -55,8 +55,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${playfair.variable} ${ebGaramond.variable} ${cinzel.variable} ${courierPrime.variable} antialiased`}
-        style={{ fontFamily: 'var(--font-inter)' }}
+        className={`${montserrat.variable} ${roboto.variable} ${quicksand.variable} ${raleway.variable} ${jetbrainsMono.variable} antialiased`}
+        style={{ fontFamily: 'var(--font-montserrat)' }}
       >
         {/* Animated metallic background */}
         <div className="fixed inset-0 -z-10 overflow-hidden">

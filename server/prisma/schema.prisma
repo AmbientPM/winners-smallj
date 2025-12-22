@@ -132,7 +132,7 @@ model WalletBalance {
 model TokenPrice {
     id        Int      @id @default(autoincrement())
     tokenId   Int      @map("token_id")
-    price     Float // Price in USD per troy ounce
+    price     Float
     createdAt DateTime @default(now()) @map("created_at")
 
     token Token @relation(fields: [tokenId], references: [id], onDelete: Cascade)
