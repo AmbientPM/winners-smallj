@@ -6,6 +6,7 @@ import { formatCompactCurrency } from "@/shared/lib/format-number";
 import { DollarSign, Copy, CheckCircle2, Shield } from "lucide-react";
 import Link from "next/link";
 import { GiGoldBar } from "react-icons/gi";
+import { BuyMetalsDialog } from "@/shared/components/shared/buy-metals-dialog";
 import { useWalletStore } from "@/shared/store/wallet-store";
 import { useUserStatistics } from "@/shared/hooks/use-api";
 import { PiTelegramLogo } from "react-icons/pi";
@@ -16,6 +17,7 @@ export default function Home() {
   const { userData } = useWalletStore();
   const { data, isLoading } = useUserStatistics();
   const [copiedIssuer, setCopiedIssuer] = useState(false);
+  const [buyDialogOpen, setBuyDialogOpen] = useState(false);
 
   const ISSUER_ADDRESS = "GDRUFU6HP5UHCG4BYRXW5YSSYFKFCQ5EPEFDV6WGFJ42DBMWKXYAVTFF";
 
@@ -159,15 +161,22 @@ export default function Home() {
             <PiTelegramLogo className="w-5 h-5" />
             <span className="text-sm">Telegram</span>
           </a>
-          <Link
-            href="/voucher/gold"
+          <button
+            onClick={() => setBuyDialogOpen(true)}
             className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-amber-950 font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95"
           >
             <GiGoldBar className="w-5 h-5" />
             <span className="text-sm">Buy Metals</span>
-          </Link>
+          </button>
         </div>
       </div>
+
+      <BuyMetalsDialog
+        open={buyDialogOpen}
+        onOpenChange={setBuyDialogOpen}
+        silverBuyLink={silverBalance.buyLink}
+        goldBuyLink={goldBalance.buyLink}
+      />
     </main>
   );
 }

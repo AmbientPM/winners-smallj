@@ -14,6 +14,7 @@ async function main() {
             issuerPublic: 'GBQAV7QSBJHWVYPP5OHINHA2SSTNI7DN4QI2JSSZ6ZYE3QECGF576TNQ',
             issuerSecret: 'SBAXEOQ5VYTMZ52MQ2YDAFFHYZ6SR7HBBJTU6ICAAZRZUMKHVPUUBCUI',
             isActive: true,
+            buyLink: 'https://example.com/buy/silver',
         },
     });
     console.log('✅ Silver token created:', silverToken);
@@ -26,6 +27,7 @@ async function main() {
             issuerPublic: 'GBQAV7QSBJHWVYPP5OHINHA2SSTNI7DN4QI2JSSZ6ZYE3QECGF576TNQ',
             issuerSecret: 'SBAXEOQ5VYTMZ52MQ2YDAFFHYZ6SR7HBBJTU6ICAAZRZUMKHVPUUBCUI',
             isActive: true,
+            buyLink: 'https://example.com/buy/gold',
         },
     });
     console.log('✅ Gold token created:', goldToken);

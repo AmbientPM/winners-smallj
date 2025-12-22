@@ -136,6 +136,9 @@ export class UserService {
         const silverPrice = silverToken?.prices[0]?.price || 0;
         const goldPrice = goldToken?.prices[0]?.price || 0;
 
+        const silverBuyLink = silverToken?.buyLink || null;
+        const goldBuyLink = goldToken?.buyLink || null;
+
         // Calculate ounces
         // Silver: 1 token = 1 oz
         // Gold: 1 token = 0.1 oz
@@ -176,13 +179,15 @@ export class UserService {
                         tokens: silverBalance,
                         ounces: silverOunces,
                         usd: silverBalanceUSD,
-                        price: silverPrice
+                        price: silverPrice,
+                        buyLink: silverBuyLink
                     },
                     gold: {
                         tokens: goldBalance,
                         ounces: goldOunces,
                         usd: goldBalanceUSD,
-                        price: goldPrice
+                        price: goldPrice,
+                        buyLink: goldBuyLink
                     },
                     total: {
                         usd: totalBalanceUSD

@@ -61,6 +61,7 @@ export interface MetalBalanceData {
     ounces?: number;
     usd: number;
     price: number;
+    buyLink?: string | null;
 }
 
 export interface BalancesData {
