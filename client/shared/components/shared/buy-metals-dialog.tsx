@@ -12,11 +12,11 @@ interface BuyMetalsDialogProps {
   goldBuyLink?: string | null;
 }
 
-export function BuyMetalsDialog({ 
-  open, 
-  onOpenChange, 
-  silverBuyLink, 
-  goldBuyLink 
+export function BuyMetalsDialog({
+  open,
+  onOpenChange,
+  silverBuyLink,
+  goldBuyLink
 }: BuyMetalsDialogProps) {
   const handleBuyMetal = (link: string | null | undefined) => {
     if (link) {
@@ -43,8 +43,8 @@ export function BuyMetalsDialog({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden">
-                  <Image 
-                    src="/images/gold.png" 
+                  <Image
+                    src="/images/gold.png"
                     alt="Gold"
                     width={48}
                     height={48}
@@ -71,8 +71,8 @@ export function BuyMetalsDialog({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden">
-                  <Image 
-                    src="/images/silver.png" 
+                  <Image
+                    src="/images/silver.png"
                     alt="Silver"
                     width={48}
                     height={48}
