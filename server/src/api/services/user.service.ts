@@ -136,8 +136,15 @@ export class UserService {
         const silverPrice = silverToken?.prices[0]?.price || 0;
         const goldPrice = goldToken?.prices[0]?.price || 0;
 
-        const silverBalanceUSD = silverBalance * silverPrice;
-        const goldBalanceUSD = goldBalance * goldPrice;
+        // Calculate ounces
+        // Silver: 1 token = 1 oz
+        // Gold: 1 token = 0.1 oz
+        const silverOunces = silverBalance * 1;
+        const goldOunces = goldBalance * 0.1;
+
+        // Calculate USD values based on ounces
+        const silverBalanceUSD = silverOunces * silverPrice;
+        const goldBalanceUSD = goldOunces * goldPrice;
         const totalBalanceUSD = silverBalanceUSD + goldBalanceUSD;
 
         return {
@@ -161,17 +168,19 @@ export class UserService {
                     serialNumber: cert.serialNumber,
                     uniqueNumber: cert.uniqueNumber,
                     tokenAmount: cert.metalType === MetalType.SILVER
-                        ? silverBalance
-                        : goldBalance
+                        ? silverOunces
+                        : goldOunces
                 })),
                 balances: {
                     silver: {
                         tokens: silverBalance,
+                        ounces: silverOunces,
                         usd: silverBalanceUSD,
                         price: silverPrice
                     },
                     gold: {
                         tokens: goldBalance,
+                        ounces: goldOunces,
                         usd: goldBalanceUSD,
                         price: goldPrice
                     },

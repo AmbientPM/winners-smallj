@@ -58,6 +58,7 @@ export interface CertificateData {
 // Balance Data
 export interface MetalBalanceData {
     tokens: number;
+    ounces?: number;
     usd: number;
     price: number;
 }

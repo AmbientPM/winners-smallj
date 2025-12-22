@@ -27,29 +27,29 @@ export default function Home() {
 
   // Use data from hook if available, otherwise use store
   const currentUserData = data?.user || userData;
-  const silverBalance = currentUserData?.balances?.silver || { tokens: 0, usd: 0, price: 0 };
-  const goldBalance = currentUserData?.balances?.gold || { tokens: 0, usd: 0, price: 0 };
+  const silverBalance = currentUserData?.balances?.silver || { tokens: 0, ounces: 0, usd: 0, price: 0 };
+  const goldBalance = currentUserData?.balances?.gold || { tokens: 0, ounces: 0, usd: 0, price: 0 };
 
-  // Calculate ounces and USD values
+  // Use ounces from API if available, otherwise calculate
   // Gold: 1 token = 0.1 oz, Silver: 1 token = 1 oz
-  const goldOunces = goldBalance.tokens * 0.1;
-  const silverOunces = silverBalance.tokens * 1;
-  const goldUsdValue = goldBalance.usd || (goldOunces * goldBalance.price);
-  const silverUsdValue = silverBalance.usd || (silverOunces * silverBalance.price);
-  const totalUsdValue = currentUserData?.balances?.total?.usd || (goldUsdValue + silverUsdValue);
+  const goldOunces = goldBalance.ounces ?? (goldBalance.tokens * 0.1);
+  const silverOunces = silverBalance.ounces ?? (silverBalance.tokens * 1);
+  const goldUsdValue = goldBalance.usd;
+  const silverUsdValue = silverBalance.usd;
+  const totalUsdValue = currentUserData?.balances?.total?.usd || 0;
 
   return (
     <main className="min-h-screen pb-20 bg-neutral-950">
 
       {/* Modern Header */}
-      <div className="sticky top-0 z-10 backdrop-blur-xl bg-neutral-950/80 border-b border-neutral-800/50">
+      <div className="backdrop-blur-xl bg-neutral-950/80 border-b border-neutral-800/50">
         <div className="px-4 py-4">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center gap-2.5">
             <div className="relative">
               <img
                 src="/logo.png"
                 alt="Winners"
-                className="w-9 h-9 object-contain drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]"
+                className="w-9 h-9 scale-150 object-contain drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]"
               />
               <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 rounded-full blur-md -z-10"></div>
             </div>
