@@ -34,7 +34,7 @@ export class AdminTokenManagementUpdate {
         message += '👇 <i>Choose an action:</i>';
 
         const buttons: any[][] = [];
-        
+
         // Add token buttons (2 per row)
         for (let i = 0; i < tokens.length; i += 2) {
             const row: any[] = [];
