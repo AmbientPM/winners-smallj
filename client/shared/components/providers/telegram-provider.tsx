@@ -22,19 +22,19 @@ const queryKeys = {
 // Get initData from Telegram WebApp
 function getTelegramInitData(): string | null {
     if (typeof window === "undefined") return null;
-    
+
     const tg = (window as any).Telegram?.WebApp;
-    
+
     if (tg) {
         tg.ready();
         tg.expand();
-        
+
         if (tg.initData) {
             console.log("[TG] initData found:", tg.initData.substring(0, 50) + "...");
             return tg.initData;
         }
     }
-    
+
     console.log("[TG] No initData");
     return null;
 }
@@ -71,10 +71,10 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
 }
 
 // Inner component that fetches user data using React Query
-function TelegramProviderInner({ 
-    children, 
-    initData 
-}: { 
+function TelegramProviderInner({
+    children,
+    initData
+}: {
     children: React.ReactNode;
     initData: string | null;
 }) {

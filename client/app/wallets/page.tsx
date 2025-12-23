@@ -71,93 +71,93 @@ export default function WalletsPage() {
                     ) : (
                         [...wallets].sort((a, b) => {
                             if (a.isActive && !b.isActive) return -1;
-                                if (!a.isActive && b.isActive) return 1;
-                                return 0;
-                            }).map((wallet: WalletData) => (
-                                <Card key={wallet.id} className="p-3 bg-amber-950/20 border-amber-500/20 rounded-xl">
-                                    {/* Address & Status */}
-                                    <div className="flex items-center gap-2">
-                                        <code className="text-xs flex-1 truncate font-mono text-amber-200/60">
-                                            {wallet.publicKey}
-                                        </code>
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            {wallet.verificationStatus === 'SUCCESS' ? (
-                                                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs">
-                                                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                                                    Verified
-                                                </Badge>
-                                            ) : wallet.verificationStatus === 'PENDING' ? (
-                                                <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30 text-xs">
-                                                    <Clock className="w-3 h-3 mr-1" />
-                                                    Pending
+                            if (!a.isActive && b.isActive) return 1;
+                            return 0;
+                        }).map((wallet: WalletData) => (
+                            <Card key={wallet.id} className="p-3 bg-amber-950/20 border-amber-500/20 rounded-xl">
+                                {/* Address & Status */}
+                                <div className="flex items-center gap-2">
+                                    <code className="text-xs flex-1 truncate font-mono text-amber-200/60">
+                                        {wallet.publicKey}
+                                    </code>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        {wallet.verificationStatus === 'SUCCESS' ? (
+                                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs">
+                                                <CheckCircle2 className="w-3 h-3 mr-1" />
+                                                Verified
+                                            </Badge>
+                                        ) : wallet.verificationStatus === 'PENDING' ? (
+                                            <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30 text-xs">
+                                                <Clock className="w-3 h-3 mr-1" />
+                                                Pending
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30 text-xs">
+                                                Canceled
+                                            </Badge>
+                                        )}
+
+                                        {/* Active/Set Active Button */}
+                                        {wallet.verificationStatus === 'SUCCESS' && (
+                                            wallet.isActive ? (
+                                                <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">
+                                                    <Check className="w-3 h-3 mr-1" />
+                                                    Active
                                                 </Badge>
                                             ) : (
-                                                <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30 text-xs">
-                                                    Canceled
-                                                </Badge>
-                                            )}
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-7 px-2 text-xs border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                                                    onClick={() => handleSetActiveWallet(wallet.id)}
+                                                    disabled={setActiveWalletMutation.isPending}
+                                                >
+                                                    {setActiveWalletMutation.isPending ? (
+                                                        <>
+                                                            <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                                            Setting...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Check className="w-3 h-3 mr-1" />
+                                                            Set Active
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            )
+                                        )}
 
-                                            {/* Active/Set Active Button */}
-                                            {wallet.verificationStatus === 'SUCCESS' && (
-                                                wallet.isActive ? (
-                                                    <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">
-                                                        <Check className="w-3 h-3 mr-1" />
-                                                        Active
-                                                    </Badge>
-                                                ) : (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-7 px-2 text-xs border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
-                                                        onClick={() => handleSetActiveWallet(wallet.id)}
-                                                        disabled={setActiveWalletMutation.isPending}
-                                                    >
-                                                        {setActiveWalletMutation.isPending ? (
-                                                            <>
-                                                                <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                                                                Setting...
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <Check className="w-3 h-3 mr-1" />
-                                                                Set Active
-                                                            </>
-                                                        )}
-                                                    </Button>
-                                                )
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-7 w-7 p-0 text-amber-200/50 hover:text-amber-200 hover:bg-amber-500/10"
+                                            onClick={() => copyToClipboard(wallet.publicKey)}
+                                        >
+                                            {copiedAddress === wallet.publicKey ? (
+                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                            ) : (
+                                                <Copy className="w-3.5 h-3.5" />
                                             )}
-
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-7 w-7 p-0 text-amber-200/50 hover:text-amber-200 hover:bg-amber-500/10"
-                                                onClick={() => copyToClipboard(wallet.publicKey)}
-                                            >
-                                                {copiedAddress === wallet.publicKey ? (
-                                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                                ) : (
-                                                    <Copy className="w-3.5 h-3.5" />
-                                                )}
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-7 w-7 p-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
-                                                onClick={() => handleDeleteWallet(wallet.id, wallet.publicKey)}
-                                                disabled={deleteWalletMutation.isPending}
-                                            >
-                                                {deleteWalletMutation.isPending ? (
-                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                                ) : (
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                )}
-                                            </Button>
-                                        </div>
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-7 w-7 p-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
+                                            onClick={() => handleDeleteWallet(wallet.id, wallet.publicKey)}
+                                            disabled={deleteWalletMutation.isPending}
+                                        >
+                                            {deleteWalletMutation.isPending ? (
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : (
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            )}
+                                        </Button>
                                     </div>
-                                </Card>
-                            ))
-                        )}
-                    </div>
+                                </div>
+                            </Card>
+                        ))
+                    )}
+                </div>
 
                 {/* Info Card */}
                 <Card className="p-4 bg-amber-950/20 border-amber-500/20 rounded-xl">

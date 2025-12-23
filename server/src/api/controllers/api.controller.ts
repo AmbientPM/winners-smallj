@@ -17,7 +17,7 @@ export class ApiController {
         private readonly telegramAuth: TelegramAuthService,
         private readonly userService: UserService,
         private readonly walletService: WalletService,
-    ) {}
+    ) { }
 
     @Post('/userStatistics')
     async userStatistics(@Body(ValidationPipe) body: UserStatisticsDto) {
