@@ -56,14 +56,11 @@ model Wallet {
 }
 
 model Settings {
-    id                        Int     @id @default(autoincrement())
-    depositAddress            String? @map("deposit_address")
-    depositAmount             Float?  @map("deposit_amount")
-    sendingEnabled            Boolean @default(false) @map("sending_enabled")
-    purchaseDistributorPublic String? @map("purchase_distributor_public")
-    purchaseDistributorSecret String? @map("purchase_distributor_secret")
-    welcomeImageFileId        String? @map("welcome_image_file_id")
-    mainTokenHolders          Json?   @map("main_token_holders")
+    id                 Int     @id @default(autoincrement())
+    depositAddress     String? @map("deposit_address")
+    depositAmount      Float?  @map("deposit_amount")
+    sendingEnabled     Boolean @default(false) @map("sending_enabled")
+    welcomeImageFileId String? @map("welcome_image_file_id")
 
     updatedAt DateTime @updatedAt @map("updated_at")
 

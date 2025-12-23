@@ -8,6 +8,7 @@ import { InjectBot } from 'nestjs-telegraf';
 import { MenuUpdate } from './updates/menu.update';
 import { TextHandlerUpdate } from './updates/text-handler.update';
 import { AdminWelcomeImageUpdate } from './updates/admin/welcome-image.update';
+import { AdminTokenManagementUpdate } from './updates/admin/token-management.update';
 
 import { IsAdminGuard } from './guards/is-admin.guard';
 import { IsPrivateGuard } from './guards/is-private.guard';
@@ -29,6 +30,7 @@ import { ActionLoggingMiddleware } from './middlewares/action-logging.middleware
         MenuUpdate,
         TextHandlerUpdate,
         AdminWelcomeImageUpdate,
+        AdminTokenManagementUpdate,
         IsAdminGuard,
         IsPrivateGuard,
         UserMiddleware,

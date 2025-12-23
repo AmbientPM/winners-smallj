@@ -19,8 +19,6 @@ export async function getStakingInfo(prisma: PrismaService): Promise<string> {
     text += `  Public: <code>${silverToken?.issuerPublic ? silverToken.issuerPublic.substring(0, 15) + '...' : '❌ Not set'}</code>\n`;
     text += `  Sending: ${settings?.sendingEnabled ? '✅ Enabled' : '❌ Disabled'}\n\n`;
 
-    text += `<b>Purchase Distributor:</b> ${settings?.purchaseDistributorSecret ? '✅ Configured' : '❌ Not set'}\n\n`;
-
     text += '👇 <i>Use the buttons below to manage settings</i>';
 
     return text;

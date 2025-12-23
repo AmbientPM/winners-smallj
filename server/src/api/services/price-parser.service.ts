@@ -12,15 +12,15 @@ interface GoldApiResponse {
 @Injectable()
 export class PriceParserService {
     private readonly logger = new Logger(PriceParserService.name);
-    private readonly apiToken = 'goldapi-1eaq7dsmjd03d7n-io';
+    private readonly apiToken = 'goldapi-pqpeosmjih34ax-io';
     private readonly baseUrl = 'https://www.goldapi.io/api';
 
     constructor(private readonly prisma: PrismaService) { }
 
     /**
-     * Обновляет цены каждые 5 минут
+     * Обновляет цены каждые 8 часов
      */
-    @Cron(CronExpression.EVERY_5_MINUTES)
+    @Cron('0 */8 * * *')
     async updatePrices() {
         this.logger.log('Updating metal prices...');
 

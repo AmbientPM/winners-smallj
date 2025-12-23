@@ -7,6 +7,7 @@ export interface SessionData {
 
 export interface Context extends TelegrafContext {
     session: SessionData;
+    match?: RegExpMatchArray;
     dbUser?: {
         id: number;
         telegramId: bigint;

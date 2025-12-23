@@ -138,8 +138,6 @@ async function main() {
             depositAddress: 'GBQAV7QSBJHWVYPP5OHINHA2SSTNI7DN4QI2JSSZ6ZYE3QECGF576TNQ',
             depositAmount: 10,
             sendingEnabled: true,
-            purchaseDistributorPublic: 'GAOTTUMH3BR3FBMSMDINWFSGGZZVLNNEMQJVF4IFRH624J63JASJ5HYY',
-            purchaseDistributorSecret: 'SB57D32DTBCCAC3PU3KRMUNGVX22B4P55BIR4B6BKD6GEN7IT6NLPPOE',
         },
     });
     console.log('✅ Settings created:', settings);

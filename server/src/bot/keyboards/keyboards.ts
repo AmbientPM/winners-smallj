@@ -23,4 +23,5 @@ export const userMenuKeyboard = (appUrl: string) =>
 
 export const adminMenuKeyboard = Markup.inlineKeyboard([
     [Markup.button.callback('📸 Welcome Image', 'set_welcome_image')],
+    [Markup.button.callback('🪙 Manage Tokens', 'manage_tokens')],
 ]);

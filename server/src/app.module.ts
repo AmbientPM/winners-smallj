@@ -11,7 +11,7 @@ import { BlockchainModule } from './blockchain/blockchain.module';
       isGlobal: true,
     }),
     DatabaseModule,
-    // BotModule,
+    BotModule,
     ApiModule,
     BlockchainModule,
   ],
