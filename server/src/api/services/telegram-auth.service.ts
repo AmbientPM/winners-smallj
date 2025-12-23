@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import * as crypto from 'crypto';
+import { PrismaService } from '../../database/prisma.service';
 
 export interface TelegramUser {
     id: bigint;
@@ -11,7 +12,62 @@ export interface TelegramUser {
 
 @Injectable()
 export class TelegramAuthService {
-    constructor(private readonly botToken: string) { }
+    private readonly isDev: boolean;
+
+    constructor(
+        private readonly botToken: string,
+        private readonly prisma: PrismaService,
+    ) {
+        this.isDev = process.env.IS_DEV === 'true';
+    }
+
+    async validateAndGetUser(initData?: string | null) {
+        // Dev mode: return mock user if initData is not provided
+        if (this.isDev && (!initData || initData.trim() === '')) {
+            let mockUser = await this.prisma.user.findFirst({
+                where: { telegramId: BigInt(999999999) },
+            });
+
+            if (!mockUser) {
+                mockUser = await this.prisma.user.create({
+                    data: {
+                        telegramId: BigInt(999999999),
+                        telegramUsername: 'mock_user',
+                        telegramName: 'Mock User',
+                    },
+                });
+            }
+
+            return mockUser;
+        }
+
+        if (!initData) {
+            throw new HttpException('Invalid authentication', HttpStatus.UNAUTHORIZED);
+        }
+
+        const telegramUser = this.validateInitData(initData);
+
+        if (!telegramUser) {
+            throw new HttpException('Invalid authentication', HttpStatus.UNAUTHORIZED);
+        }
+
+        let user = await this.prisma.user.findUnique({
+            where: { telegramId: telegramUser.id },
+        });
+
+        if (!user) {
+            // Auto-create user if not exists
+            user = await this.prisma.user.create({
+                data: {
+                    telegramId: telegramUser.id,
+                    telegramUsername: telegramUser.username || null,
+                    telegramName: [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(' ') || 'Unknown',
+                },
+            });
+        }
+
+        return user;
+    }
 
     validateInitData(initData: string): TelegramUser | null {
         try {

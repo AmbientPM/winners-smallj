@@ -54,6 +54,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script src="https://telegram.org/js/telegram-web-app.js" />
+      </head>
       <body
         className={`${montserrat.variable} ${roboto.variable} ${quicksand.variable} ${raleway.variable} ${jetbrainsMono.variable} antialiased`}
         style={{ fontFamily: 'var(--font-montserrat)' }}

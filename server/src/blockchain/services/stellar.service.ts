@@ -34,7 +34,7 @@ export class StellarService {
     private readonly SUPPLY_REFILL_LIMIT = 900_000_000_000;
 
     constructor(private readonly configService: ConfigService) {
-        this.testnet = this.configService.get<string>('STELLAR_NETWORK') !== 'public';
+        this.testnet = this.configService.getOrThrow<string>('STELLAR_NETWORK') !== 'public';
 
         if (this.testnet) {
             this.server = new Horizon.Server('https://horizon-testnet.stellar.org');
@@ -107,7 +107,13 @@ export class StellarService {
                         .transaction(payment.transaction_hash)
                         .call();
 
-                    const paymentMemo = transaction.memo || '';
+                    // Правильно извлекаем memo в зависимости от типа
+                    let paymentMemo = '';
+                    if (transaction.memo_type === 'text') {
+                        paymentMemo = transaction.memo || '';
+                    } else if (transaction.memo_type === 'id') {
+                        paymentMemo = transaction.memo ? transaction.memo.toString() : '';
+                    }
 
                     let paymentAsset: Asset;
                     if (payment.asset_type === 'native') {
@@ -121,7 +127,8 @@ export class StellarService {
                     if (paymentMemo === memo && paymentAsset.equals(asset)) {
                         if (amount) {
                             const paymentAmount = parseFloat(payment.amount);
-                            if (Math.abs(paymentAmount - amount) < 0.0000001) {
+                            // Проверяем что сумма >= минимальной (а не точное совпадение)
+                            if (paymentAmount >= amount) {
                                 return true;
                             }
                         } else {
@@ -177,6 +184,10 @@ export class StellarService {
             const result = await this.server.submitTransaction(transaction);
             return result.hash;
         } catch (error) {
+            // Log detailed Stellar error
+            if (error.response?.data?.extras?.result_codes) {
+                this.logger.error(`Stellar error codes: ${JSON.stringify(error.response.data.extras.result_codes)}`);
+            }
             this.logger.error(`Failed to send tokens: ${error.message}`);
             throw new StellarAPIError(`Failed to send tokens: ${error.message}`);
         }

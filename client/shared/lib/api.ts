@@ -16,8 +16,8 @@ export const apiService = {
      * Get user statistics including balances, wallets, and certificates
      */
     async getUserStatistics(initData?: string): Promise<UserStatisticsResponse> {
-        const response = await api.get<UserStatisticsResponse>("/userStatistics", {
-            params: initData ? { initData } : undefined
+        const response = await api.post<UserStatisticsResponse>("/userStatistics", {
+            initData: initData || null
         });
         return response.data;
     },

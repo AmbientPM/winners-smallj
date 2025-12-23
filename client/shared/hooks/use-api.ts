@@ -2,16 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiService } from "@/shared/lib/api";
+import { useTelegramInitData } from "@/shared/components/providers/telegram-provider";
 import toast from "react-hot-toast";
-
-// Helper to get initData from cookie
-function getCookieValue(name: string): string | undefined {
-    if (typeof window === 'undefined') return undefined;
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift();
-    return undefined;
-}
 
 // Query keys
 export const queryKeys = {
@@ -23,11 +15,12 @@ export const queryKeys = {
  * Hook to fetch user statistics
  */
 export function useUserStatistics() {
+    const initData = useTelegramInitData();
+
     return useQuery({
         queryKey: queryKeys.userStatistics,
         queryFn: async () => {
-            const initData = getCookieValue('tg_init_data');
-            const response = await apiService.getUserStatistics(initData);
+            const response = await apiService.getUserStatistics(initData || undefined);
             return response.user;
         },
         staleTime: 30 * 1000, // 30 seconds
@@ -40,15 +33,14 @@ export function useUserStatistics() {
  */
 export function useAddWallet() {
     const queryClient = useQueryClient();
+    const initData = useTelegramInitData();
 
     return useMutation({
         mutationFn: async (publicKey: string) => {
-            const initData = getCookieValue('tg_init_data');
-            return await apiService.addWallet(publicKey, initData);
+            return await apiService.addWallet(publicKey, initData || undefined);
         },
         onSuccess: (data) => {
             if (data.success) {
-                // Invalidate user statistics to refresh data
                 queryClient.invalidateQueries({ queryKey: queryKeys.userStatistics });
 
                 if (!data.needsVerification) {
@@ -67,11 +59,11 @@ export function useAddWallet() {
  */
 export function useVerifyWallet() {
     const queryClient = useQueryClient();
+    const initData = useTelegramInitData();
 
     return useMutation({
         mutationFn: async (walletId: number) => {
-            const initData = getCookieValue('tg_init_data');
-            return await apiService.verifyWallet(walletId, initData);
+            return await apiService.verifyWallet(walletId, initData || undefined);
         },
         onSuccess: (data) => {
             if (data.success && data.verified) {
@@ -90,11 +82,11 @@ export function useVerifyWallet() {
  */
 export function useDeleteWallet() {
     const queryClient = useQueryClient();
+    const initData = useTelegramInitData();
 
     return useMutation({
         mutationFn: async ({ walletId, publicKey }: { walletId: number; publicKey: string }) => {
-            const initData = getCookieValue('tg_init_data');
-            return await apiService.deleteWallet(walletId, initData);
+            return await apiService.deleteWallet(walletId, initData || undefined);
         },
         onSuccess: (data) => {
             if (data.success) {
@@ -113,11 +105,11 @@ export function useDeleteWallet() {
  */
 export function useSetActiveWallet() {
     const queryClient = useQueryClient();
+    const initData = useTelegramInitData();
 
     return useMutation({
         mutationFn: async (walletId: number) => {
-            const initData = getCookieValue('tg_init_data');
-            return await apiService.setActiveWallet(walletId, initData);
+            return await apiService.setActiveWallet(walletId, initData || undefined);
         },
         onSuccess: (data) => {
             if (data.success) {

@@ -3,9 +3,12 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { BigIntSerializerInterceptor } from './api/interceptors/bigint-serializer.interceptor';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
 
@@ -22,11 +25,24 @@ async function bootstrap() {
     transform: true,
   }));
 
-
   app.useGlobalInterceptors(new BigIntSerializerInterceptor());
 
   // Use WebSocket adapter
   app.useWebSocketAdapter(new WsAdapter(app));
+
+  // Serve static files from client/out
+  const clientOutPath = join(__dirname, '..', '..', '..', 'client', 'out');
+  app.useStaticAssets(clientOutPath);
+
+  // SPA fallback - serve index.html for non-API routes that don't match static files
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    // Skip API and WebSocket routes
+    if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) {
+      return next();
+    }
+    // For all other routes, serve index.html (SPA routing)
+    res.sendFile(join(clientOutPath, 'index.html'));
+  });
 
   await app.listen(process.env.PORT ?? 3000);
   console.log(`Application is running on: http://localhost:${process.env.PORT ?? 3000}`);

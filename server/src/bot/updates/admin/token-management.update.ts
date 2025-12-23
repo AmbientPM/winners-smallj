@@ -230,7 +230,8 @@ export class AdminTokenManagementUpdate {
                 parse_mode: 'HTML',
                 ...Markup.inlineKeyboard([
                     [Markup.button.callback('📸 Welcome Image', 'set_welcome_image')],
-                    [Markup.button.callback('🪙 Manage Tokens', 'manage_tokens')],
+                    [Markup.button.callback('💰 Deposit Settings', 'deposit_settings')],
+                    [Markup.button.callback('📝 Welcome Text', 'welcome_text_settings')],
                 ]),
             }
         );

@@ -8,14 +8,12 @@ import Link from "next/link";
 import { GiGoldBar } from "react-icons/gi";
 import { BuyMetalsDialog } from "@/shared/components/shared/buy-metals-dialog";
 import { useWalletStore } from "@/shared/store/wallet-store";
-import { useUserStatistics } from "@/shared/hooks/use-api";
 import { PiTelegramLogo } from "react-icons/pi";
 import { MetalPriceCard } from "@/shared/components/shared/metal-price-card";
 
 
 export default function Home() {
   const { userData } = useWalletStore();
-  const { data, isLoading } = useUserStatistics();
   const [copiedIssuer, setCopiedIssuer] = useState(false);
   const [buyDialogOpen, setBuyDialogOpen] = useState(false);
 
@@ -27,10 +25,9 @@ export default function Home() {
     setTimeout(() => setCopiedIssuer(false), 2000);
   };
 
-  // Use data from hook if available, otherwise use store
-  const currentUserData = data?.user || userData;
-  const silverBalance = currentUserData?.balances?.silver || { tokens: 0, ounces: 0, usd: 0, price: 0 };
-  const goldBalance = currentUserData?.balances?.gold || { tokens: 0, ounces: 0, usd: 0, price: 0 };
+  // Use data from store
+  const silverBalance = userData?.balances?.silver || { tokens: 0, ounces: 0, usd: 0, price: 0 };
+  const goldBalance = userData?.balances?.gold || { tokens: 0, ounces: 0, usd: 0, price: 0 };
 
   // Use ounces from API if available, otherwise calculate
   // Gold: 1 token = 0.1 oz, Silver: 1 token = 1 oz
@@ -38,7 +35,7 @@ export default function Home() {
   const silverOunces = silverBalance.ounces ?? (silverBalance.tokens * 1);
   const goldUsdValue = goldBalance.usd;
   const silverUsdValue = silverBalance.usd;
-  const totalUsdValue = currentUserData?.balances?.total?.usd || 0;
+  const totalUsdValue = userData?.balances?.total?.usd || 0;
 
   return (
     <main className="min-h-screen pb-20 bg-neutral-950">
@@ -114,12 +111,6 @@ export default function Home() {
 
       {/* Bottom Section */}
       <div className="px-4 mt-4 space-y-3">
-        {isLoading && (
-          <div className="text-center py-4 text-neutral-500 text-xs">
-            Loading...
-          </div>
-        )}
-
         {/* Issuer Info Card */}
         <Card className="p-3 bg-neutral-900/50 border-neutral-800 rounded-xl">
           <div className="flex items-center gap-3">

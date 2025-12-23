@@ -3,21 +3,82 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: nest-postgres
+    container_name: nwo-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: newworldorder
+      POSTGRES_USER: ${DB_USER:-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-newworldorder}
     ports:
-      - '5432:5432'
+      - '${DB_PORT:-5432}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U user -d newworldorder']
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-user} -d ${DB_NAME:-newworldorder}']
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - nwo-network
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nwo-server
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-user}:${DB_PASSWORD:-password}@postgres:5432/${DB_NAME:-newworldorder}?schema=public
+      BOT_TOKEN: ${BOT_TOKEN}
+      ADMIN_IDS: ${ADMIN_IDS}
+      APP_URL: ${APP_URL}
+      TIMEZONE: ${TIMEZONE:-Europe/Moscow}
+      TESTNET: ${TESTNET:-false}
+      PORT: 4200
+      IS_DEV: ${IS_DEV:-false}
+      STELLAR_NETWORK: ${STELLAR_NETWORK:-testnet}
+    expose:
+      - '4200'
+    networks:
+      - nwo-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nwo-nginx
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./client/out:/usr/share/nginx/html:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+    networks:
+      - nwo-network
+    command: /bin/sh -c "envsubst '$$DOMAIN' < /etc/nginx/conf.d/default.conf > /etc/nginx/conf.d/default.conf.tmp && mv /etc/nginx/conf.d/default.conf.tmp /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+
+  certbot:
+    image: certbot/certbot
+    container_name: nwo-certbot
+    restart: unless-stopped
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - nwo-network
+
+networks:
+  nwo-network:
+    driver: bridge
 
 volumes:
   postgres_data:

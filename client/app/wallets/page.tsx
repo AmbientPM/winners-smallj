@@ -8,17 +8,18 @@ import { WalletData } from "@/shared/types/api";
 import { Badge } from "@/shared/components/ui/badge";
 import { AddWalletDialog } from "@/shared/components/shared/add-wallet-dialog";
 import { DeleteWalletDialog } from "@/shared/components/shared/delete-wallet-dialog";
-import { useUserStatistics, useDeleteWallet, useSetActiveWallet } from "@/shared/hooks/use-api";
+import { useDeleteWallet, useSetActiveWallet } from "@/shared/hooks/use-api";
+import { useWalletStore } from "@/shared/store/wallet-store";
 
 export default function WalletsPage() {
     const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [walletToDelete, setWalletToDelete] = useState<{ id: number; publicKey: string } | null>(null);
-    const { data, isLoading, error } = useUserStatistics();
+    const { userData } = useWalletStore();
     const deleteWalletMutation = useDeleteWallet();
     const setActiveWalletMutation = useSetActiveWallet();
 
-    const wallets = data?.wallets || [];
+    const wallets = userData?.wallets || [];
 
     const copyToClipboard = (address: string) => {
         navigator.clipboard.writeText(address);
@@ -59,34 +60,17 @@ export default function WalletsPage() {
                 {/* Add Wallet Button */}
                 <AddWalletDialog />
 
-                {/* Loading State */}
-                {isLoading && (
-                    <div className="flex items-center justify-center py-8">
-                        <Loader2 className="w-6 h-6 animate-spin text-amber-400/50" />
-                    </div>
-                )}
-
-                {/* Error State */}
-                {error && !isLoading && (
-                    <Card className="p-4 bg-red-950/30 border-red-500/30 rounded-xl">
-                        <p className="text-sm text-red-400">
-                            Failed to load wallets
-                        </p>
-                    </Card>
-                )}
-
                 {/* Wallets List */}
-                {!isLoading && !error && (
-                    <div className="space-y-3">
-                        {wallets.length === 0 ? (
-                            <Card className="p-6 text-center bg-amber-950/20 border-amber-500/20 rounded-xl">
-                                <p className="text-sm text-amber-200/50">
-                                    No wallets yet. Add your first wallet to get started!
-                                </p>
-                            </Card>
-                        ) : (
-                            [...wallets].sort((a, b) => {
-                                if (a.isActive && !b.isActive) return -1;
+                <div className="space-y-3">
+                    {wallets.length === 0 ? (
+                        <Card className="p-6 text-center bg-amber-950/20 border-amber-500/20 rounded-xl">
+                            <p className="text-sm text-amber-200/50">
+                                No wallets yet. Add your first wallet to get started!
+                            </p>
+                        </Card>
+                    ) : (
+                        [...wallets].sort((a, b) => {
+                            if (a.isActive && !b.isActive) return -1;
                                 if (!a.isActive && b.isActive) return 1;
                                 return 0;
                             }).map((wallet: WalletData) => (
@@ -129,9 +113,15 @@ export default function WalletsPage() {
                                                         disabled={setActiveWalletMutation.isPending}
                                                     >
                                                         {setActiveWalletMutation.isPending ? (
-                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                            <>
+                                                                <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                                                Setting...
+                                                            </>
                                                         ) : (
-                                                            <Check className="w-3 h-3" />
+                                                            <>
+                                                                <Check className="w-3 h-3 mr-1" />
+                                                                Set Active
+                                                            </>
                                                         )}
                                                     </Button>
                                                 )
@@ -168,7 +158,6 @@ export default function WalletsPage() {
                             ))
                         )}
                     </div>
-                )}
 
                 {/* Info Card */}
                 <Card className="p-4 bg-amber-950/20 border-amber-500/20 rounded-xl">

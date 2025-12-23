@@ -18,14 +18,18 @@ export function IsInitDataRequired(validationOptions?: ValidationOptions) {
                 validate(value: any, args: ValidationArguments) {
                     const isDev = process.env.IS_DEV === 'true';
 
-                    // In development, initData is optional
+                    // In development, initData is optional (allow undefined, null, or empty string)
                     if (isDev) {
-                        // Allow undefined, null, or empty string in dev
                         return true;
                     }
 
                     // In production, initData is required and must be a non-empty string
-                    if (value === undefined || value === null) {
+                    // Allow null to pass validation (will be handled by controller)
+                    if (value === null) {
+                        return true;
+                    }
+
+                    if (value === undefined) {
                         return false;
                     }
 

@@ -37,17 +37,18 @@ model User {
 }
 
 model Wallet {
-    id                    Int                      @id @default(autoincrement())
-    userId                Int                      @map("user_id")
-    publicKey             String                   @unique @map("public_key")
-    isActive              Boolean                  @default(true) @map("is_active")
-    isDeleted             Boolean                  @default(false) @map("is_deleted")
-    verificationStatus    WalletVerificationStatus @default(PENDING) @map("verification_status")
-    verificationExpiresAt DateTime?                @map("verification_expires_at")
-    verificationAttempts  Int                      @default(0) @map("verification_attempts")
-    metadata              Json?
-    createdAt             DateTime                 @default(now()) @map("created_at")
-    updatedAt             DateTime                 @updatedAt @map("updated_at")
+    id                     Int                      @id @default(autoincrement())
+    userId                 Int                      @map("user_id")
+    publicKey              String                   @unique @map("public_key")
+    isActive               Boolean                  @default(true) @map("is_active")
+    isDeleted              Boolean                  @default(false) @map("is_deleted")
+    verificationStatus     WalletVerificationStatus @default(PENDING) @map("verification_status")
+    verificationExpiresAt  DateTime?                @map("verification_expires_at")
+    verificationAttempts   Int                      @default(0) @map("verification_attempts")
+    wasVerifiedWithDeposit Boolean                  @default(false) @map("was_verified_with_deposit")
+    metadata               Json?
+    createdAt              DateTime                 @default(now()) @map("created_at")
+    updatedAt              DateTime                 @updatedAt @map("updated_at")
 
     user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
     balances WalletBalance[]
@@ -61,6 +62,7 @@ model Settings {
     depositAmount      Float?  @map("deposit_amount")
     sendingEnabled     Boolean @default(false) @map("sending_enabled")
     welcomeImageFileId String? @map("welcome_image_file_id")
+    welcomeText        String? @map("welcome_text")
 
     updatedAt DateTime @updatedAt @map("updated_at")
 

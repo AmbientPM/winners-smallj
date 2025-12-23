@@ -135,7 +135,7 @@ async function main() {
         where: { id: 1 },
         update: {},
         create: {
-            depositAddress: 'GBQAV7QSBJHWVYPP5OHINHA2SSTNI7DN4QI2JSSZ6ZYE3QECGF576TNQ',
+            depositAddress: 'GB5JRPP2FDUDMUSQAQPBN345NFBWRGODPSASETSQ2EUWXB4XE5AEVWGV',
             depositAmount: 10,
             sendingEnabled: true,
         },

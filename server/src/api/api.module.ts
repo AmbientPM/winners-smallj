@@ -11,6 +11,7 @@ import { PriceParserService } from './services/price-parser.service';
 import { StatusGateway } from './gateways/status.gateway';
 import { DatabaseModule } from '../database/database.module';
 import { BlockchainModule } from '../blockchain/blockchain.module';
+import { PrismaService } from '../database/prisma.service';
 
 @Module({
     imports: [ConfigModule, DatabaseModule, BlockchainModule, ScheduleModule.forRoot()],
@@ -18,11 +19,11 @@ import { BlockchainModule } from '../blockchain/blockchain.module';
     providers: [
         {
             provide: TelegramAuthService,
-            useFactory: (configService: ConfigService) => {
-                const botToken = configService.get<string>('BOT_TOKEN')!;
-                return new TelegramAuthService(botToken);
+            useFactory: (configService: ConfigService, prisma: PrismaService) => {
+                const botToken = configService.getOrThrow<string>('BOT_TOKEN')!;
+                return new TelegramAuthService(botToken, prisma);
             },
-            inject: [ConfigService],
+            inject: [ConfigService, PrismaService],
         },
         UserService,
         WalletService,

@@ -5,6 +5,8 @@ import { IsPrivateGuard } from '../guards/is-private.guard';
 import { IsAdminGuard } from '../guards/is-admin.guard';
 import { AdminWelcomeImageUpdate } from './admin/welcome-image.update';
 import { AdminTokenManagementUpdate } from './admin/token-management.update';
+import { AdminDepositSettingsUpdate } from './admin/deposit-settings.update';
+import { AdminWelcomeTextUpdate } from './admin/welcome-text.update';
 
 @Update()
 @UseGuards(IsPrivateGuard, IsAdminGuard)
@@ -13,6 +15,8 @@ export class TextHandlerUpdate {
     constructor(
         private readonly welcomeImageUpdate: AdminWelcomeImageUpdate,
         private readonly tokenManagementUpdate: AdminTokenManagementUpdate,
+        private readonly depositSettingsUpdate: AdminDepositSettingsUpdate,
+        private readonly welcomeTextUpdate: AdminWelcomeTextUpdate,
     ) { }
 
     @On('text')
@@ -51,6 +55,19 @@ export class TextHandlerUpdate {
         }
         if (step === 'edit_token_buylink') {
             return this.tokenManagementUpdate.handleEditTokenBuyLink(ctx, text);
+        }
+
+        // Deposit settings handlers
+        if (step === 'deposit_address') {
+            return this.depositSettingsUpdate.handleDepositAddress(ctx, text);
+        }
+        if (step === 'deposit_amount') {
+            return this.depositSettingsUpdate.handleDepositAmount(ctx, text);
+        }
+
+        // Welcome text handler
+        if (step === 'welcome_text') {
+            return this.welcomeTextUpdate.handleWelcomeText(ctx, text);
         }
 
         console.log('[TextHandler] No handler found for step:', step);

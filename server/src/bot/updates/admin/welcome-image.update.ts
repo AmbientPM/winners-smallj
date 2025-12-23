@@ -36,16 +36,10 @@ export class AdminWelcomeImageUpdate {
 
     @Action('remove_welcome_image')
     async removeWelcomeImage(@Ctx() ctx: Context) {
-        let settings = await this.prisma.settings.findFirst();
-
-        if (!settings) {
-            await ctx.answerCbQuery('No settings found', { show_alert: true });
-            return;
-        }
-
-        await this.prisma.settings.update({
-            where: { id: settings.id },
-            data: { welcomeImageFileId: null },
+        await this.prisma.settings.upsert({
+            where: { id: 1 },
+            update: { welcomeImageFileId: null },
+            create: { id: 1 },
         });
 
         await ctx.answerCbQuery('✅ Welcome image removed', { show_alert: true });
@@ -54,7 +48,6 @@ export class AdminWelcomeImageUpdate {
         ctx.session = {};
 
         await ctx.reply('Welcome image has been removed. The bot will use the default fallback.');
-        await ctx.answerCbQuery();
     }
 
     async handlePhoto(@Ctx() ctx: Context) {
@@ -64,18 +57,11 @@ export class AdminWelcomeImageUpdate {
         const fileId = photo[photo.length - 1].file_id;
 
         try {
-            let settings = await this.prisma.settings.findFirst();
-
-            if (!settings) {
-                settings = await this.prisma.settings.create({
-                    data: { welcomeImageFileId: fileId },
-                });
-            } else {
-                await this.prisma.settings.update({
-                    where: { id: settings.id },
-                    data: { welcomeImageFileId: fileId },
-                });
-            }
+            await this.prisma.settings.upsert({
+                where: { id: 1 },
+                update: { welcomeImageFileId: fileId },
+                create: { id: 1, welcomeImageFileId: fileId },
+            });
 
             await MessageManager.deleteRemembered(ctx);
             ctx.session = {};

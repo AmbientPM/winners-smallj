@@ -9,6 +9,8 @@ import { MenuUpdate } from './updates/menu.update';
 import { TextHandlerUpdate } from './updates/text-handler.update';
 import { AdminWelcomeImageUpdate } from './updates/admin/welcome-image.update';
 import { AdminTokenManagementUpdate } from './updates/admin/token-management.update';
+import { AdminDepositSettingsUpdate } from './updates/admin/deposit-settings.update';
+import { AdminWelcomeTextUpdate } from './updates/admin/welcome-text.update';
 
 import { IsAdminGuard } from './guards/is-admin.guard';
 import { IsPrivateGuard } from './guards/is-private.guard';
@@ -20,7 +22,7 @@ import { ActionLoggingMiddleware } from './middlewares/action-logging.middleware
         TelegrafModule.forRootAsync({
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => ({
-                token: configService.get<string>('BOT_TOKEN')!,
+                token: configService.getOrThrow<string>('BOT_TOKEN')!,
                 middlewares: [session()],
             }),
             inject: [ConfigService],
@@ -31,6 +33,8 @@ import { ActionLoggingMiddleware } from './middlewares/action-logging.middleware
         TextHandlerUpdate,
         AdminWelcomeImageUpdate,
         AdminTokenManagementUpdate,
+        AdminDepositSettingsUpdate,
+        AdminWelcomeTextUpdate,
         IsAdminGuard,
         IsPrivateGuard,
         UserMiddleware,

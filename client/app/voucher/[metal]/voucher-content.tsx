@@ -7,14 +7,14 @@ import { METALS, MetalType } from "@/shared/types/api";
 import { ArrowLeft, Info } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/shared/lib/utils";
-import { useUserStatistics } from "@/shared/hooks/use-api";
+import { useWalletStore } from "@/shared/store/wallet-store";
 
 interface VoucherContentProps {
     metalType: MetalType;
 }
 
 export function VoucherContent({ metalType }: VoucherContentProps) {
-    const { data: userData } = useUserStatistics();
+    const { userData } = useWalletStore();
     const metalConfig = METALS[metalType];
     const isGold = metalType === 'gold';
 

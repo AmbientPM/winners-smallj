@@ -3,24 +3,24 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../database/prisma.service';
 
 interface GoldApiResponse {
-    metal: string;
-    currency: string;
+    name: string;
     price: number;
-    timestamp: number;
+    symbol: string;
+    updatedAt: string;
+    updatedAtReadable: string;
 }
 
 @Injectable()
 export class PriceParserService {
     private readonly logger = new Logger(PriceParserService.name);
-    private readonly apiToken = 'goldapi-pqpeosmjih34ax-io';
-    private readonly baseUrl = 'https://www.goldapi.io/api';
+    private readonly baseUrl = 'https://api.gold-api.com';
 
     constructor(private readonly prisma: PrismaService) { }
 
     /**
-     * Обновляет цены каждые 8 часов
+     * Обновляет цены каждые 5 минут
      */
-    @Cron('0 */8 * * *')
+    @Cron('*/5 * * * *')
     async updatePrices() {
         this.logger.log('Updating metal prices...');
 
@@ -73,12 +73,8 @@ export class PriceParserService {
      */
     private async fetchPrice(metal: 'XAG' | 'XAU'): Promise<number> {
         try {
-            const url = `${this.baseUrl}/${metal}/USD`;
-            const response = await fetch(url, {
-                headers: {
-                    'x-access-token': this.apiToken,
-                },
-            });
+            const url = `${this.baseUrl}/price/${metal}`;
+            const response = await fetch(url);
 
             if (!response.ok) {
                 throw new Error(`API request failed: ${response.status} ${response.statusText}`);

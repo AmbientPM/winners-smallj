@@ -11,155 +11,9 @@ export class WalletService {
     ) { }
 
     /**
-     * Шаг 1: Начинаем процесс добавления кошелька
-     * Генерируем уникальный код для проверки
+     * Добавление кошелька с верификацией если нужно
      */
     async addWallet(userId: number, publicKey: string) {
-        // Проверяем есть ли уже кошелёк у этого пользователя
-        const userWallet = await this.prisma.wallet.findFirst({
-            where: {
-                userId,
-                publicKey,
-            },
-        });
-
-        if (userWallet) {
-            // Если кошелек уже привязан к этому пользователю
-            if (userWallet.isDeleted && userWallet.verificationStatus === 'SUCCESS') {
-                // Кошелек был удален, но уже верифицирован - просто восстанавливаем и активируем
-                // Деактивируем все остальные кошельки
-                await this.prisma.wallet.updateMany({
-                    where: {
-                        userId,
-                        isDeleted: false,
-                    },
-                    data: { isActive: false },
-                });
-
-                const updatedWallet = await this.prisma.wallet.update({
-                    where: { id: userWallet.id },
-                    data: {
-                        isActive: true,
-                        isDeleted: false,
-                    },
-                });
-
-                return {
-                    success: true,
-                    message: 'Wallet restored and activated',
-                    wallet: {
-                        id: updatedWallet.id,
-                        publicKey: updatedWallet.publicKey,
-                        verificationStatus: 'SUCCESS',
-                    },
-                };
-            } else if (userWallet.isDeleted) {
-                // Кошелек был удален и не верифицирован - начинаем верификацию заново
-                const verificationCode = this.generateVerificationCode();
-                const settings = await this.prisma.settings.findFirst();
-                const depositAddress = settings?.depositAddress;
-
-                if (!depositAddress) {
-                    throw new HttpException(
-                        'Deposit address not configured',
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                    );
-                }
-
-                const expiresAt = new Date();
-                expiresAt.setMinutes(expiresAt.getMinutes() + 15);
-
-                const updatedWallet = await this.prisma.wallet.update({
-                    where: { id: userWallet.id },
-                    data: {
-                        isActive: false,
-                        isDeleted: false,
-                        verificationStatus: 'PENDING',
-                        verificationExpiresAt: expiresAt,
-                        verificationAttempts: 0,
-                        metadata: {
-                            verificationCode,
-                            verified: false,
-                        },
-                    },
-                });
-
-                return {
-                    success: true,
-                    needsVerification: true,
-                    verificationCode,
-                    depositAddress,
-                    minAmount: 1,
-                    message: `Send at least 1 XLM to ${depositAddress} with memo: ${verificationCode}. You have 15 minutes.`,
-                    wallet: {
-                        id: updatedWallet.id,
-                        publicKey: updatedWallet.publicKey,
-                        verificationStatus: 'PENDING',
-                    },
-                    expiresAt,
-                };
-            } else if (userWallet.verificationStatus === 'SUCCESS') {
-                // Уже верифицирован - просто активируем
-                const updatedWallet = await this.prisma.wallet.update({
-                    where: { id: userWallet.id },
-                    data: { isActive: true, isDeleted: false },
-                });
-
-                return {
-                    success: true,
-                    message: 'Wallet already added and verified',
-                    wallet: {
-                        id: updatedWallet.id,
-                        publicKey: updatedWallet.publicKey,
-                        verificationStatus: 'SUCCESS',
-                    },
-                };
-            } else if (userWallet.verificationStatus === 'PENDING') {
-                // Проверяем не истекло ли время
-                const now = new Date();
-                if (userWallet.verificationExpiresAt && userWallet.verificationExpiresAt > now) {
-                    // Время еще не истекло - возвращаем тот же код
-                    const metadata = userWallet.metadata as any;
-                    return {
-                        success: true,
-                        needsVerification: true,
-                        verificationCode: metadata?.verificationCode,
-                        depositAddress: (await this.prisma.settings.findFirst())?.depositAddress,
-                        minAmount: 1,
-                        message: `Wallet verification pending. Send at least 1 XLM with memo: ${metadata?.verificationCode}`,
-                        wallet: {
-                            id: userWallet.id,
-                            publicKey: userWallet.publicKey,
-                            verificationStatus: 'PENDING',
-                        },
-                        expiresAt: userWallet.verificationExpiresAt,
-                    };
-                } else {
-                    // Время истекло - отменяем и создаем новый
-                    await this.prisma.wallet.update({
-                        where: { id: userWallet.id },
-                        data: {
-                            verificationStatus: 'CANCELED',
-                            isActive: false,
-                        },
-                    });
-                    // Продолжаем создание нового
-                }
-            }
-        }
-
-        // Проверяем не добавлен ли этот кошелёк другому пользователю (и не удален)
-        const existingWallet = await this.prisma.wallet.findFirst({
-            where: {
-                publicKey,
-                isDeleted: false,
-            },
-        });
-
-        if (existingWallet) {
-            throw new HttpException('Wallet already exists', HttpStatus.BAD_REQUEST);
-        }
-
         // Проверяем существует ли кошелёк в блокчейне
         const exists = await this.stellar.checkPublicKey(publicKey);
         if (!exists) {
@@ -169,52 +23,168 @@ export class WalletService {
             );
         }
 
-        // Генерируем уникальный verification код
-        const verificationCode = this.generateVerificationCode();
+        // Проверяем есть ли кошелек в БД (включая удаленные из-за unique constraint)
+        const existingWallet = await this.prisma.wallet.findFirst({
+            where: {
+                publicKey,
+            },
+        });
 
-        // Получаем адрес для отправки из настроек
-        const settings = await this.prisma.settings.findFirst();
-        const depositAddress = settings?.depositAddress;
+        if (existingWallet) {
+            // Кошелек существует в БД
+            if (existingWallet.isDeleted) {
+                // Кошелек был удалён - восстанавливаем для текущего пользователя
+                await this.prisma.wallet.updateMany({
+                    where: {
+                        userId,
+                        isDeleted: false,
+                    },
+                    data: { isActive: false },
+                });
 
-        if (!depositAddress) {
-            throw new HttpException(
-                'Deposit address not configured',
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
+                const restoredWallet = await this.prisma.wallet.update({
+                    where: { id: existingWallet.id },
+                    data: {
+                        userId,
+                        isActive: true,
+                        isDeleted: false,
+                        verificationStatus: 'SUCCESS',
+                        metadata: {
+                            verified: true,
+                            verifiedAt: new Date().toISOString(),
+                            restoredAt: new Date().toISOString(),
+                        },
+                    },
+                });
+
+                return {
+                    success: true,
+                    message: 'Wallet restored and activated',
+                    wallet: {
+                        id: restoredWallet.id,
+                        publicKey: restoredWallet.publicKey,
+                        verificationStatus: 'SUCCESS',
+                    },
+                };
+            }
+
+            if (existingWallet.userId === userId) {
+                // Принадлежит текущему пользователю - просто активируем
+                await this.prisma.wallet.updateMany({
+                    where: {
+                        userId,
+                        isDeleted: false,
+                    },
+                    data: { isActive: false },
+                });
+
+                const updatedWallet = await this.prisma.wallet.update({
+                    where: { id: existingWallet.id },
+                    data: { isActive: true },
+                });
+
+                return {
+                    success: true,
+                    message: 'Wallet activated',
+                    wallet: {
+                        id: updatedWallet.id,
+                        publicKey: updatedWallet.publicKey,
+                        verificationStatus: 'SUCCESS',
+                    },
+                };
+            } else {
+                // Принадлежит другому пользователю
+                if (existingWallet.wasVerifiedWithDeposit) {
+                    // Был верифицирован депозитом - НЕЛЬЗЯ перепривязать
+                    throw new HttpException(
+                        'This wallet is already registered and verified. Cannot be reassigned.',
+                        HttpStatus.FORBIDDEN,
+                    );
+                } else {
+                    // НЕ был верифицирован депозитом - можно перепривязать, но с верификацией
+                    const verificationCode = this.generateVerificationCode();
+                    const settings = await this.prisma.settings.findFirst();
+                    const depositAddress = settings?.depositAddress;
+                    const minAmount = settings?.depositAmount || 1;
+
+                    if (!depositAddress) {
+                        throw new HttpException(
+                            'Deposit address not configured',
+                            HttpStatus.INTERNAL_SERVER_ERROR,
+                        );
+                    }
+
+                    const expiresAt = new Date();
+                    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+                    // Обновляем существующую запись - перепривязываем к новому пользователю с PENDING статусом
+                    const wallet = await this.prisma.wallet.update({
+                        where: { id: existingWallet.id },
+                        data: {
+                            userId,
+                            isActive: false,
+                            verificationStatus: 'PENDING',
+                            verificationExpiresAt: expiresAt,
+                            verificationAttempts: 0,
+                            wasVerifiedWithDeposit: false,
+                            metadata: {
+                                verificationCode,
+                                verified: false,
+                            },
+                        },
+                    });
+
+                    return {
+                        success: true,
+                        needsVerification: true,
+                        verificationCode,
+                        depositAddress,
+                        minAmount,
+                        message: `This wallet is already registered. Send at least ${minAmount} XLM to ${depositAddress} with memo: ${verificationCode} to verify ownership and re-assign it. You have 15 minutes.`,
+                        wallet: {
+                            id: wallet.id,
+                            publicKey: wallet.publicKey,
+                            verificationStatus: 'PENDING',
+                        },
+                        expiresAt,
+                    };
+                }
+            }
         }
 
-        // Создаём временную запись (неактивную) с кодом
-        const expiresAt = new Date();
-        expiresAt.setMinutes(expiresAt.getMinutes() + 15); // 15 минут на верификацию
+        // Кошелек не существует в БД - добавляем без верификации
+        // Деактивируем все остальные кошельки пользователя
+        await this.prisma.wallet.updateMany({
+            where: {
+                userId,
+                isDeleted: false,
+            },
+            data: { isActive: false },
+        });
 
         const wallet = await this.prisma.wallet.create({
             data: {
                 userId,
                 publicKey,
-                isActive: false,
-                verificationStatus: 'PENDING',
-                verificationExpiresAt: expiresAt,
+                isActive: true,
+                verificationStatus: 'SUCCESS',
                 verificationAttempts: 0,
+                wasVerifiedWithDeposit: false,
                 metadata: {
-                    verificationCode, // Сохраняем код
-                    verified: false,
+                    verified: true,
+                    verifiedAt: new Date().toISOString(),
                 },
             },
         });
 
         return {
             success: true,
-            needsVerification: true,
-            verificationCode,
-            depositAddress, // Куда отправлять
-            minAmount: 1, // Минимальная сумма XLM
-            message: `Send at least 1 XLM to ${depositAddress} with memo: ${verificationCode}. You have 15 minutes.`,
+            message: 'Wallet added successfully',
             wallet: {
                 id: wallet.id,
                 publicKey: wallet.publicKey,
-                verificationStatus: 'PENDING',
+                verificationStatus: 'SUCCESS',
             },
-            expiresAt,
         };
     }
 
@@ -298,7 +268,23 @@ export class WalletService {
             };
         }
 
-        // ✅ Платёж получен! Деактивируем все кошельки и активируем этот
+        // ✅ Платёж получен! 
+        // Удаляем старую привязку кошелька у другого пользователя (если была)
+        await this.prisma.wallet.updateMany({
+            where: {
+                publicKey: wallet.publicKey,
+                isDeleted: false,
+                NOT: {
+                    id: walletId,
+                },
+            },
+            data: {
+                isDeleted: true,
+                isActive: false,
+            },
+        });
+
+        // Деактивируем все кошельки текущего пользователя
         await this.prisma.wallet.updateMany({
             where: { userId },
             data: { isActive: false },
@@ -309,6 +295,7 @@ export class WalletService {
             data: {
                 isActive: true,
                 verificationStatus: 'SUCCESS',
+                wasVerifiedWithDeposit: true, // Помечаем что был верифицирован депозитом
                 metadata: {
                     verificationCode,
                     verified: true,

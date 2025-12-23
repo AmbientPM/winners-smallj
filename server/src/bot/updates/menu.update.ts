@@ -20,7 +20,7 @@ export class MenuUpdate {
     @Start()
     @UseGuards(IsPrivateGuard)
     async start(@Ctx() ctx: Context) {
-        const appUrl = this.configService.get<string>('APP_URL')!;
+        const appUrl = this.configService.getOrThrow<string>('APP_URL')!;
 
         // Get welcome image from database
         const settings = await this.prisma.settings.findFirst();
@@ -29,7 +29,9 @@ export class MenuUpdate {
         // Fallback to local file if not in DB
         const welcomeImagePath = path.join(process.cwd(), 'welcome.png');
 
-        const caption = '<b>🇺🇸 The New World Order App</b>\n\nStart staking your RLUSD, USDC, XRP, and XLM seamlessly and securely. Your journey to effortless earning begins here!';
+        // Default welcome text
+        const defaultText = '<b>🇺🇸 The New World Order App</b>\n\nStart staking your RLUSD, USDC, XRP, and XLM seamlessly and securely. Your journey to effortless earning begins here!';
+        const caption = settings?.welcomeText || defaultText;
 
         if (welcomeImageFileId) {
             // Use image from database (Telegram file_id)
