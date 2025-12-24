@@ -4,7 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { BigIntSerializerInterceptor } from './api/interceptors/bigint-serializer.interceptor';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
@@ -30,8 +30,8 @@ async function bootstrap() {
   // Use WebSocket adapter
   app.useWebSocketAdapter(new WsAdapter(app));
 
-  // Serve static files from client/out
-  const clientOutPath = join(__dirname, '..', '..', '..', 'client', 'out');
+  // Serve static files from /app/client/out (Docker image) using resolved absolute path
+  const clientOutPath = resolve(process.cwd(), 'client', 'out');
   app.useStaticAssets(clientOutPath);
 
   // SPA fallback - serve index.html for non-API routes that don't match static files
@@ -41,7 +41,7 @@ async function bootstrap() {
       return next();
     }
     // For all other routes, serve index.html (SPA routing)
-    res.sendFile(join(clientOutPath, 'index.html'));
+    res.sendFile(resolve(clientOutPath, 'index.html'));
   });
 
   await app.listen(process.env.PORT ?? 3000);
