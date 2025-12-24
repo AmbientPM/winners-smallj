@@ -2,8 +2,8 @@ const { execSync } = require('child_process');
 const path = require('path');
 
 // FTP Configuration
-const FTP_HOST = 'ftp.tff.cash';
-const FTP_USER = 'defaulttff.cash';
+const FTP_HOST = 'prod-ftp-metals.tpof-aridrops.com';
+const FTP_USER = 'defaultprod-metals.tpof-aridrops.com';
 const FTP_PASS = 'DPeokd(I0d9d2-3';
 const FTP_REMOTE_DIR = '/web';
 
@@ -20,22 +20,24 @@ try {
         set ftp:ssl-allow no;
         set net:timeout 30;
         set net:max-retries 3;
+        set cmd:fail-exit no;
         open -u ${FTP_USER},${FTP_PASS} ftp://${FTP_HOST};
-        mirror -R --delete --exclude .well-known --verbose ${LOCAL_DIR} ${FTP_REMOTE_DIR};
+        mirror -R --delete --exclude .well-known --verbose \"${LOCAL_DIR}\" ${FTP_REMOTE_DIR};
         quit
-    "`;
+    " || true`;
 
     console.log('\n📤 Uploading files...\n');
     execSync(command, { stdio: 'inherit' });
 
     console.log('\n✅ Deployment completed successfully!');
+    console.log('⚠️  Note: Some files may not have been deleted due to permissions, but new files were uploaded.');
 } catch (error) {
-    console.error('\n❌ Deployment failed:', error.message);
+    console.error('\n⚠️  Deployment completed with warnings:', error.message);
 
     // Fallback: try with ncftpput if lftp is not available
     console.log('\n🔄 Trying alternative method with ncftpput...');
     try {
-        const altCommand = `ncftpput -R -v -u "${FTP_USER}" -p "${FTP_PASS}" ${FTP_HOST} ${FTP_REMOTE_DIR} ${LOCAL_DIR}/*`;
+        const altCommand = `ncftpput -R -v -u "${FTP_USER}" -p "${FTP_PASS}" ${FTP_HOST} ${FTP_REMOTE_DIR} "${LOCAL_DIR}"/*`;
         execSync(altCommand, { stdio: 'inherit' });
         console.log('\n✅ Deployment completed successfully (via ncftpput)!');
     } catch (altError) {

@@ -58,7 +58,7 @@ export class MenuUpdate {
         }
 
         const adminIds = this.configService
-            .get<string>('ADMIN_IDS')!
+            .getOrThrow<string>('ADMIN_IDS')!
             .split(',')
             .map((id) => parseInt(id.trim()));
 

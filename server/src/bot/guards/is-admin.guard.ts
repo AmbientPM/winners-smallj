@@ -12,7 +12,7 @@ export class IsAdminGuard implements CanActivate {
         const { from } = ctx.getContext<Context>();
 
         const adminIds = this.configService
-            .get<string>('ADMIN_IDS')!
+            .getOrThrow<string>('ADMIN_IDS')!
             .split(',')
             .map((id) => parseInt(id.trim()));
 

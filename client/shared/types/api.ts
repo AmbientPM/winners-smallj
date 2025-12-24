@@ -1,3 +1,6 @@
+import { Coins, Trophy } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
 // API Response Types
 export interface ApiResponse<T> {
     status: string;
@@ -12,7 +15,7 @@ export interface MetalConfig {
     symbol: string;
     color: string;
     accentColor: string;
-    icon: string;
+    icon: LucideIcon;
 }
 
 export const METALS: Record<MetalType, MetalConfig> = {
@@ -21,14 +24,14 @@ export const METALS: Record<MetalType, MetalConfig> = {
         symbol: 'SILVER',
         color: 'from-slate-100 via-slate-200 to-zinc-100',
         accentColor: 'text-slate-900 border-slate-700',
-        icon: '🪙'
+        icon: Coins
     },
     gold: {
         name: 'Gold',
         symbol: 'GOLD',
         color: 'from-amber-100 via-yellow-200 to-amber-100',
         accentColor: 'text-amber-900 border-amber-700',
-        icon: '🏆'
+        icon: Trophy
     }
 };
 

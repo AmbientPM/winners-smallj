@@ -14,6 +14,7 @@ interface GoldApiResponse {
 export class PriceParserService {
     private readonly logger = new Logger(PriceParserService.name);
     private readonly baseUrl = 'https://api.gold-api.com';
+    private isUpdating = false;
 
     constructor(private readonly prisma: PrismaService) { }
 
@@ -22,6 +23,13 @@ export class PriceParserService {
      */
     @Cron('*/5 * * * *')
     async updatePrices() {
+        // Защита от одновременного выполнения
+        if (this.isUpdating) {
+            this.logger.warn('Price update already in progress, skipping...');
+            return;
+        }
+
+        this.isUpdating = true;
         this.logger.log('Updating metal prices...');
 
         try {
@@ -44,27 +52,30 @@ export class PriceParserService {
                 this.fetchPrice('XAU'), // Gold
             ]);
 
-            // Сохраняем новые цены
-            await Promise.all([
-                this.prisma.tokenPrice.create({
+            // Сохраняем новые цены атомарно
+            await this.prisma.$transaction(async (tx) => {
+                await tx.tokenPrice.create({
                     data: {
                         tokenId: silverToken.id,
                         price: silverPrice,
                     },
-                }),
-                this.prisma.tokenPrice.create({
+                });
+
+                await tx.tokenPrice.create({
                     data: {
                         tokenId: goldToken.id,
                         price: goldPrice,
                     },
-                }),
-            ]);
+                });
+            });
 
             this.logger.log(
                 `Prices updated successfully - Silver: $${silverPrice}, Gold: $${goldPrice}`,
             );
         } catch (error) {
             this.logger.error(`Error updating prices: ${error.message}`);
+        } finally {
+            this.isUpdating = false;
         }
     }
 

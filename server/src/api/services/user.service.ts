@@ -47,24 +47,34 @@ export class UserService {
             throw new HttpException('User not found', HttpStatus.NOT_FOUND);
         }
 
-        // Check if user has certificates, if not - create them
+        // Check if user has certificates, if not - create them (with transaction to prevent race condition)
         if (userWithRelations.certificates.length === 0) {
-            // Create certificates for both metal types
-            await this.prisma.certificate.createMany({
-                data: [
-                    {
-                        userId: userWithRelations.id,
-                        metalType: MetalType.SILVER,
-                        serialNumber: this.generateSerialNumber(),
-                        uniqueNumber: this.generateUniqueNumber(),
-                    },
-                    {
-                        userId: userWithRelations.id,
-                        metalType: MetalType.GOLD,
-                        serialNumber: this.generateSerialNumber(),
-                        uniqueNumber: this.generateUniqueNumber(),
-                    }
-                ]
+            const currentUserId = userWithRelations.id;
+            await this.prisma.$transaction(async (tx) => {
+                // Double-check inside transaction to prevent duplicate certificates
+                const existingCerts = await tx.certificate.findMany({
+                    where: { userId: currentUserId },
+                });
+
+                if (existingCerts.length === 0) {
+                    // Create certificates for both metal types
+                    await tx.certificate.createMany({
+                        data: [
+                            {
+                                userId: currentUserId,
+                                metalType: MetalType.SILVER,
+                                serialNumber: this.generateSerialNumber(),
+                                uniqueNumber: this.generateUniqueNumber(),
+                            },
+                            {
+                                userId: currentUserId,
+                                metalType: MetalType.GOLD,
+                                serialNumber: this.generateSerialNumber(),
+                                uniqueNumber: this.generateUniqueNumber(),
+                            }
+                        ]
+                    });
+                }
             });
 
             // Refetch user with certificates

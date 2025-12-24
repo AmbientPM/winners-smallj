@@ -7,6 +7,7 @@ import { Asset } from 'stellar-sdk';
 @Injectable()
 export class WalletVerificationService {
     private readonly logger = new Logger(WalletVerificationService.name);
+    private isProcessingVerifications = false;
 
     constructor(
         private readonly prisma: PrismaService,
@@ -18,15 +19,24 @@ export class WalletVerificationService {
      */
     @Cron(CronExpression.EVERY_MINUTE)
     async checkPendingVerifications() {
+        // Защита от одновременного выполнения
+        if (this.isProcessingVerifications) {
+            this.logger.warn('Previous verification check still running, skipping...');
+            return;
+        }
+
+        this.isProcessingVerifications = true;
         this.logger.log('Checking pending wallet verifications...');
 
         try {
-            // Получаем все кошельки в статусе PENDING
+            // Получаем все кошельки в статусе PENDING (ограничение 100 за раз)
             const pendingWallets = await this.prisma.wallet.findMany({
                 where: {
                     verificationStatus: 'PENDING',
                     isActive: false,
                 },
+                take: 100,
+                orderBy: { createdAt: 'asc' },
             });
 
             if (pendingWallets.length === 0) {
@@ -86,19 +96,37 @@ export class WalletVerificationService {
                     );
 
                     if (received) {
-                        // Платёж получен - верифицируем кошелёк
-                        await this.prisma.wallet.update({
-                            where: { id: wallet.id },
-                            data: {
-                                isActive: true,
-                                verificationStatus: 'SUCCESS',
-                                metadata: {
-                                    verificationCode,
-                                    verified: true,
-                                    verifiedAt: new Date().toISOString(),
+                        // Платёж получен - верифицируем кошелёк с транзакцией
+                        await this.prisma.$transaction(async (tx) => {
+                            // Проверяем что статус все еще PENDING
+                            const currentWallet = await tx.wallet.findFirst({
+                                where: {
+                                    id: wallet.id,
+                                    verificationStatus: 'PENDING',
                                 },
-                            },
+                            });
+
+                            if (!currentWallet) {
+                                this.logger.warn(
+                                    `Wallet ${wallet.id} already verified or status changed`,
+                                );
+                                return;
+                            }
+
+                            await tx.wallet.update({
+                                where: { id: wallet.id },
+                                data: {
+                                    isActive: true,
+                                    verificationStatus: 'SUCCESS',
+                                    metadata: {
+                                        verificationCode,
+                                        verified: true,
+                                        verifiedAt: new Date().toISOString(),
+                                    },
+                                },
+                            });
                         });
+
                         verifiedCount++;
                         this.logger.log(`Wallet ${wallet.id} successfully verified`);
                     }
@@ -114,6 +142,8 @@ export class WalletVerificationService {
             );
         } catch (error) {
             this.logger.error(`Error in checkPendingVerifications: ${error.message}`);
+        } finally {
+            this.isProcessingVerifications = false;
         }
     }
 

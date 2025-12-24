@@ -34,64 +34,68 @@ export class WalletService {
             // Кошелек существует в БД
             if (existingWallet.isDeleted) {
                 // Кошелек был удалён - восстанавливаем для текущего пользователя
-                await this.prisma.wallet.updateMany({
-                    where: {
-                        userId,
-                        isDeleted: false,
-                    },
-                    data: { isActive: false },
-                });
-
-                const restoredWallet = await this.prisma.wallet.update({
-                    where: { id: existingWallet.id },
-                    data: {
-                        userId,
-                        isActive: true,
-                        isDeleted: false,
-                        verificationStatus: 'SUCCESS',
-                        metadata: {
-                            verified: true,
-                            verifiedAt: new Date().toISOString(),
-                            restoredAt: new Date().toISOString(),
+                return await this.prisma.$transaction(async (tx) => {
+                    await tx.wallet.updateMany({
+                        where: {
+                            userId,
+                            isDeleted: false,
                         },
-                    },
-                });
+                        data: { isActive: false },
+                    });
 
-                return {
-                    success: true,
-                    message: 'Wallet restored and activated',
-                    wallet: {
-                        id: restoredWallet.id,
-                        publicKey: restoredWallet.publicKey,
-                        verificationStatus: 'SUCCESS',
-                    },
-                };
+                    const restoredWallet = await tx.wallet.update({
+                        where: { id: existingWallet.id },
+                        data: {
+                            userId,
+                            isActive: true,
+                            isDeleted: false,
+                            verificationStatus: 'SUCCESS',
+                            metadata: {
+                                verified: true,
+                                verifiedAt: new Date().toISOString(),
+                                restoredAt: new Date().toISOString(),
+                            },
+                        },
+                    });
+
+                    return {
+                        success: true,
+                        message: 'Wallet restored and activated',
+                        wallet: {
+                            id: restoredWallet.id,
+                            publicKey: restoredWallet.publicKey,
+                            verificationStatus: 'SUCCESS',
+                        },
+                    };
+                });
             }
 
             if (existingWallet.userId === userId) {
                 // Принадлежит текущему пользователю - просто активируем
-                await this.prisma.wallet.updateMany({
-                    where: {
-                        userId,
-                        isDeleted: false,
-                    },
-                    data: { isActive: false },
-                });
+                return await this.prisma.$transaction(async (tx) => {
+                    await tx.wallet.updateMany({
+                        where: {
+                            userId,
+                            isDeleted: false,
+                        },
+                        data: { isActive: false },
+                    });
 
-                const updatedWallet = await this.prisma.wallet.update({
-                    where: { id: existingWallet.id },
-                    data: { isActive: true },
-                });
+                    const updatedWallet = await tx.wallet.update({
+                        where: { id: existingWallet.id },
+                        data: { isActive: true },
+                    });
 
-                return {
-                    success: true,
-                    message: 'Wallet activated',
-                    wallet: {
-                        id: updatedWallet.id,
-                        publicKey: updatedWallet.publicKey,
-                        verificationStatus: 'SUCCESS',
-                    },
-                };
+                    return {
+                        success: true,
+                        message: 'Wallet activated',
+                        wallet: {
+                            id: updatedWallet.id,
+                            publicKey: updatedWallet.publicKey,
+                            verificationStatus: 'SUCCESS',
+                        },
+                    };
+                });
             } else {
                 // Принадлежит другому пользователю
                 if (existingWallet.wasVerifiedWithDeposit) {
@@ -153,39 +157,53 @@ export class WalletService {
         }
 
         // Кошелек не существует в БД - добавляем без верификации
-        // Деактивируем все остальные кошельки пользователя
-        await this.prisma.wallet.updateMany({
-            where: {
-                userId,
-                isDeleted: false,
-            },
-            data: { isActive: false },
-        });
+        return await this.prisma.$transaction(async (tx) => {
+            // Повторная проверка внутри транзакции для предотвращения race condition
+            const doubleCheck = await tx.wallet.findFirst({
+                where: { publicKey },
+            });
 
-        const wallet = await this.prisma.wallet.create({
-            data: {
-                userId,
-                publicKey,
-                isActive: true,
-                verificationStatus: 'SUCCESS',
-                verificationAttempts: 0,
-                wasVerifiedWithDeposit: false,
-                metadata: {
-                    verified: true,
-                    verifiedAt: new Date().toISOString(),
+            if (doubleCheck) {
+                throw new HttpException(
+                    'Wallet was just added by another request',
+                    HttpStatus.CONFLICT,
+                );
+            }
+
+            // Деактивируем все остальные кошельки пользователя
+            await tx.wallet.updateMany({
+                where: {
+                    userId,
+                    isDeleted: false,
                 },
-            },
-        });
+                data: { isActive: false },
+            });
 
-        return {
-            success: true,
-            message: 'Wallet added successfully',
-            wallet: {
-                id: wallet.id,
-                publicKey: wallet.publicKey,
-                verificationStatus: 'SUCCESS',
-            },
-        };
+            const wallet = await tx.wallet.create({
+                data: {
+                    userId,
+                    publicKey,
+                    isActive: true,
+                    verificationStatus: 'SUCCESS',
+                    verificationAttempts: 0,
+                    wasVerifiedWithDeposit: false,
+                    metadata: {
+                        verified: true,
+                        verifiedAt: new Date().toISOString(),
+                    },
+                },
+            });
+
+            return {
+                success: true,
+                message: 'Wallet added successfully',
+                wallet: {
+                    id: wallet.id,
+                    publicKey: wallet.publicKey,
+                    verificationStatus: 'SUCCESS',
+                },
+            };
+        });
     }
 
     /**
@@ -268,48 +286,67 @@ export class WalletService {
             };
         }
 
-        // ✅ Платёж получен! 
-        // Удаляем старую привязку кошелька у другого пользователя (если была)
-        await this.prisma.wallet.updateMany({
-            where: {
-                publicKey: wallet.publicKey,
-                isDeleted: false,
-                NOT: {
+        // ✅ Платёж получен! Выполняем все обновления атомарно
+        return await this.prisma.$transaction(async (tx) => {
+            // Проверяем что кошелек все еще в статусе PENDING (защита от повторной верификации)
+            const currentWallet = await tx.wallet.findFirst({
+                where: {
                     id: walletId,
+                    userId,
+                    verificationStatus: 'PENDING',
                 },
-            },
-            data: {
-                isDeleted: true,
-                isActive: false,
-            },
-        });
+            });
 
-        // Деактивируем все кошельки текущего пользователя
-        await this.prisma.wallet.updateMany({
-            where: { userId },
-            data: { isActive: false },
-        });
+            if (!currentWallet) {
+                throw new HttpException(
+                    'Wallet already verified or status changed',
+                    HttpStatus.CONFLICT,
+                );
+            }
 
-        await this.prisma.wallet.update({
-            where: { id: walletId },
-            data: {
-                isActive: true,
+            // Удаляем старую привязку кошелька у другого пользователя (если была)
+            await tx.wallet.updateMany({
+                where: {
+                    publicKey: wallet.publicKey,
+                    isDeleted: false,
+                    NOT: {
+                        id: walletId,
+                    },
+                },
+                data: {
+                    isDeleted: true,
+                    isActive: false,
+                },
+            });
+
+            // Деактивируем все кошельки текущего пользователя
+            await tx.wallet.updateMany({
+                where: { userId },
+                data: { isActive: false },
+            });
+
+            // Активируем и верифицируем кошелек
+            await tx.wallet.update({
+                where: { id: walletId },
+                data: {
+                    isActive: true,
+                    verificationStatus: 'SUCCESS',
+                    wasVerifiedWithDeposit: true,
+                    metadata: {
+                        verificationCode,
+                        verified: true,
+                        verifiedAt: new Date().toISOString(),
+                    },
+                },
+            });
+
+            return {
+                success: true,
+                verified: true,
                 verificationStatus: 'SUCCESS',
-                wasVerifiedWithDeposit: true, // Помечаем что был верифицирован депозитом
-                metadata: {
-                    verificationCode,
-                    verified: true,
-                    verifiedAt: new Date().toISOString(),
-                },
-            },
+                message: 'Wallet verified successfully!',
+            };
         });
-
-        return {
-            success: true,
-            verified: true,
-            verificationStatus: 'SUCCESS',
-            message: 'Wallet verified successfully!',
-        };
     }
 
     /**
@@ -367,24 +404,26 @@ export class WalletService {
             );
         }
 
-        // Деактивируем все кошельки пользователя
-        await this.prisma.wallet.updateMany({
-            where: {
-                userId,
-                isDeleted: false,
-            },
-            data: { isActive: false },
-        });
+        return await this.prisma.$transaction(async (tx) => {
+            // Деактивируем все кошельки пользователя
+            await tx.wallet.updateMany({
+                where: {
+                    userId,
+                    isDeleted: false,
+                },
+                data: { isActive: false },
+            });
 
-        // Активируем выбранный кошелек
-        await this.prisma.wallet.update({
-            where: { id: walletId },
-            data: { isActive: true },
-        });
+            // Активируем выбранный кошелек
+            await tx.wallet.update({
+                where: { id: walletId },
+                data: { isActive: true },
+            });
 
-        return {
-            success: true,
-            message: 'Wallet activated successfully',
-        };
+            return {
+                success: true,
+                message: 'Wallet activated successfully',
+            };
+        });
     }
 }

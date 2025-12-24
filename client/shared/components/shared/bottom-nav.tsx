@@ -70,18 +70,22 @@ export function BottomNav() {
                   side="top"
                   className="mb-2 bg-amber-950/95 backdrop-blur-xl border-amber-500/30 rounded-xl"
                 >
-                  {Object.entries(METALS).map(([key, config]) => (
-                    <DropdownMenuItem key={key} asChild>
-                      <Link
-                        href={`/voucher/${key}`}
-                        className="flex items-center gap-2 cursor-pointer hover:bg-amber-500/20 text-amber-100"
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                        <span className="text-lg">{config.icon}</span>
-                        <span className="font-medium">{config.name} Voucher</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
+                  {Object.entries(METALS).map(([key, config]) => {
+                    const MetalIcon = config.icon;
+                    const iconColor = key === 'gold' ? 'text-amber-400' : 'text-slate-400';
+                    return (
+                      <DropdownMenuItem key={key} asChild>
+                        <Link
+                          href={`/voucher/${key}`}
+                          className="flex items-center gap-2 cursor-pointer hover:bg-amber-500/20 text-amber-100"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <MetalIcon className={cn("w-5 h-5", iconColor)} />
+                          <span className="font-medium">{config.name} Voucher</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    );
+                  })}
                 </DropdownMenuContent>
               </DropdownMenu>
             );

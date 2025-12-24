@@ -16,6 +16,7 @@ interface VoucherContentProps {
 export function VoucherContent({ metalType }: VoucherContentProps) {
     const { userData } = useWalletStore();
     const metalConfig = METALS[metalType];
+    const Icon = metalConfig.icon;
     const isGold = metalType === 'gold';
 
     // Get certificate for this metal type
@@ -37,12 +38,12 @@ export function VoucherContent({ metalType }: VoucherContentProps) {
                     </Link>
                     <div className="flex-1">
                         <h1 className={cn(
-                            "text-xl font-bold",
+                            "text-xl font-bold flex items-center gap-2",
                             isGold
                                 ? "bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 bg-clip-text text-transparent"
                                 : "bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 bg-clip-text text-transparent"
                         )} style={{ fontFamily: 'var(--font-raleway)' }}>
-                            {metalConfig.icon} {metalConfig.name} Voucher
+                            <Icon className={cn("w-5 h-5", isGold ? "text-amber-400" : "text-slate-400")} /> {metalConfig.name} Voucher
                         </h1>
                         <p className="text-xs text-amber-200/50">Physical bullion claim certificate</p>
                     </div>
