@@ -6,6 +6,7 @@ import { BigIntSerializerInterceptor } from './api/interceptors/bigint-serialize
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join, resolve } from 'path';
 import { Request, Response, NextFunction } from 'express';
+import { existsSync } from 'fs';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -30,8 +31,13 @@ async function bootstrap() {
   // Use WebSocket adapter
   app.useWebSocketAdapter(new WsAdapter(app));
 
-  // Serve static files from /app/client/out (Docker image) using resolved absolute path
-  const clientOutPath = resolve(process.cwd(), 'client', 'out');
+  // Dynamically resolve client/out path for both Docker and local
+  let clientOutPathCandidates = [
+    resolve(process.cwd(), 'client', 'out'), // Docker
+    resolve(__dirname, '..', '..', 'client', 'out'), // Local dev (from server/src)
+    resolve(__dirname, '..', 'client', 'out'), // Local dev (from dist)
+  ];
+  const clientOutPath = clientOutPathCandidates.find(p => existsSync(p)) || clientOutPathCandidates[0];
   app.useStaticAssets(clientOutPath);
 
   // SPA fallback - serve index.html for non-API routes that don't match static files
