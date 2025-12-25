@@ -114,7 +114,7 @@ export default function Home() {
 
 
         {/* Action Buttons */}
-        {/* <div className="grid grid-cols-2 gap-3">
+      {/* <div className="grid grid-cols-2 gap-3">
           <a
             href="https://t.me/your_channel"
             target="_blank"
