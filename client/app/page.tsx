@@ -110,9 +110,9 @@ export default function Home() {
       </div>
 
       {/* Bottom Section */}
-      <div className="px-4 mt-4 space-y-3">
-        {/* Issuer Info Card */}
-        <Card className="p-3 bg-neutral-900/50 border-neutral-800 rounded-xl">
+      {/* <div className="px-4 mt-4 space-y-3"> */}
+      {/* Issuer Info Card */}
+      {/* <Card className="p-3 bg-neutral-900/50 border-neutral-800 rounded-xl">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-neutral-800 rounded-lg border border-neutral-700">
               <Shield className="w-4 h-4 text-neutral-400" />
@@ -139,9 +139,9 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </Card>
+        </Card> */}
 
-        {/* Action Buttons */}
+      {/* Action Buttons
         <div className="grid grid-cols-2 gap-3">
           <a
             href="https://t.me/your_channel"
