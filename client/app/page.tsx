@@ -110,11 +110,39 @@ export default function Home() {
       </div>
 
       {/* Bottom Section */}
-      {/* <div className="px-4 mt-4 space-y-3">
-
+      <div className="px-4 mt-4 space-y-3">
+        {/* Issuer Info Card */}
+        <Card className="p-3 bg-neutral-900/50 border-neutral-800 rounded-xl">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-neutral-800 rounded-lg border border-neutral-700">
+              <Shield className="w-4 h-4 text-neutral-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-medium text-neutral-500 mb-0.5">Token Issuer • Stellar Network</p>
+              <div className="flex items-center gap-2">
+                <code className="text-[9px] text-neutral-600 font-mono truncate flex-1">
+                  {ISSUER_ADDRESS.slice(0, 12)}...{ISSUER_ADDRESS.slice(-12)}
+                </code>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    copyIssuer();
+                  }}
+                  className="p-1 hover:bg-neutral-800 rounded transition-colors"
+                >
+                  {copiedIssuer ? (
+                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-3 h-3 text-neutral-600" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </Card>
 
         {/* Action Buttons */}
-      {/* <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <a
             href="https://t.me/your_channel"
             target="_blank"

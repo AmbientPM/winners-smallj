@@ -4,8 +4,9 @@ import { ValidationPipe } from '@nestjs/common';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { BigIntSerializerInterceptor } from './api/interceptors/bigint-serializer.interceptor';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { Request, Response, NextFunction } from 'express';
+import { existsSync } from 'fs';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -30,8 +31,13 @@ async function bootstrap() {
   // Use WebSocket adapter
   app.useWebSocketAdapter(new WsAdapter(app));
 
-  // Serve static files from client/out
-  const clientOutPath = join(__dirname, '..', '..', '..', 'client', 'out');
+  // Dynamically resolve client/out path for both Docker and local
+  let clientOutPathCandidates = [
+    resolve(process.cwd(), 'client', 'out'), // Docker
+    resolve(__dirname, '..', '..', 'client', 'out'), // Local dev (from server/src)
+    resolve(__dirname, '..', 'client', 'out'), // Local dev (from dist)
+  ];
+  const clientOutPath = clientOutPathCandidates.find(p => existsSync(p)) || clientOutPathCandidates[0];
   app.useStaticAssets(clientOutPath);
 
   // SPA fallback - serve index.html for non-API routes that don't match static files
@@ -41,7 +47,7 @@ async function bootstrap() {
       return next();
     }
     // For all other routes, serve index.html (SPA routing)
-    res.sendFile(join(clientOutPath, 'index.html'));
+    res.sendFile(resolve(clientOutPath, 'index.html'));
   });
 
   await app.listen(process.env.PORT ?? 3000);
