@@ -34,7 +34,6 @@ COPY --from=builder /server/package.json ./
 COPY --from=builder /server/node_modules ./node_modules
 COPY --from=builder /server/dist ./dist
 COPY --from=builder /server/prisma ./prisma
-COPY --from=builder /server/prisma/migrations ./prisma/migrations
 # Copy client build to /app/client/out (separate folder)
 COPY --from=client-builder /client/out ./client/out
 
