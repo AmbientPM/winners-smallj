@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: winners-postgres
+    container_name: winners-postgres2
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER:-user}
@@ -23,15 +23,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: winners-server
+    container_name: winners-server2
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     env_file:
-      - server/.env
+      - .env
     ports:
-      - '3128:4200'
+      - '4008:4200'
 
 volumes:
   postgres_data:
