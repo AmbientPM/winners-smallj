@@ -11,14 +11,17 @@ import { AdminWelcomeImageUpdate } from './updates/admin/welcome-image.update';
 import { AdminTokenManagementUpdate } from './updates/admin/token-management.update';
 import { AdminDepositSettingsUpdate } from './updates/admin/deposit-settings.update';
 import { AdminWelcomeTextUpdate } from './updates/admin/welcome-text.update';
+import { AdminDatabaseBackupUpdate } from './updates/admin/database-backup.update';
 
 import { IsAdminGuard } from './guards/is-admin.guard';
 import { IsPrivateGuard } from './guards/is-private.guard';
 import { UserMiddleware } from './middlewares/user.middleware';
 import { ActionLoggingMiddleware } from './middlewares/action-logging.middleware';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
     imports: [
+        ScheduleModule.forRoot(),
         TelegrafModule.forRootAsync({
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => ({
@@ -35,6 +38,7 @@ import { ActionLoggingMiddleware } from './middlewares/action-logging.middleware
         AdminTokenManagementUpdate,
         AdminDepositSettingsUpdate,
         AdminWelcomeTextUpdate,
+        AdminDatabaseBackupUpdate,
         IsAdminGuard,
         IsPrivateGuard,
         UserMiddleware,

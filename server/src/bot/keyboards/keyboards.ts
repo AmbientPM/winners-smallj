@@ -26,4 +26,5 @@ export const adminMenuKeyboard = Markup.inlineKeyboard([
     [Markup.button.callback('📝 Welcome Text', 'welcome_text_settings')],
     // [Markup.button.callback('🪙 Manage Tokens', 'manage_tokens')],
     [Markup.button.callback('💰 Deposit Settings', 'deposit_settings')],
+    [Markup.button.callback('💾 Database Backup', 'database_backup')],
 ]);
