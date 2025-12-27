@@ -63,13 +63,11 @@ export class MenuUpdate {
             .map((id) => parseInt(id.trim()));
 
         if (adminIds.includes(ctx.from!.id)) {
-            const backupRecipientIds = this.configService.get<string>('BACKUP_RECIPIENT_IDS');
-
             await ctx.reply(
                 '<b>⚙️ Admin Panel</b>\n\nManage your bot settings:',
                 {
                     parse_mode: 'HTML',
-                    ...adminMenuKeyboard(ctx.from!.id, backupRecipientIds),
+                    ...adminMenuKeyboard(ctx.from!.id, this.configService),
                 }
             );
         }

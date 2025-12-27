@@ -1,4 +1,6 @@
 import { Markup } from 'telegraf';
+import { ConfigService } from '@nestjs/config';
+import { KeyboardBuilder, ButtonConfig } from '../utils/keyboard-builder';
 
 export const cancelKeyboard = Markup.inlineKeyboard([
     [Markup.button.callback('❌ Cancel', 'cancel')],
@@ -21,25 +23,16 @@ export const userMenuKeyboard = (appUrl: string) =>
         Markup.button.webApp('🕹 App', appUrl),
     ]);
 
-export const adminMenuKeyboard = (userId: number, backupRecipientIds?: string) => {
-    const buttons = [
-        [Markup.button.callback('📸 Welcome Image', 'set_welcome_image')],
-        [Markup.button.callback('📝 Welcome Text', 'welcome_text_settings')],
-        // [Markup.button.callback('🪙 Manage Tokens', 'manage_tokens')],
-        [Markup.button.callback('💰 Deposit Settings', 'deposit_settings')],
-    ];
+// Admin menu button configuration with group restrictions
+const adminMenuButtons: ButtonConfig[] = [
+    { text: '📸 Welcome Image', callback: 'set_welcome_image' },
+    { text: '📝 Welcome Text', callback: 'welcome_text_settings' },
+    // { text: '🪙 Manage Tokens', callback: 'manage_tokens' },
+    { text: '💰 Deposit Settings', callback: 'deposit_settings' },
+    { text: '💾 Database Backup', callback: 'database_backup', group: 'BACKUP_RECIPIENT_IDS' },
+];
 
-    // Add Database Backup button only for users in BACKUP_RECIPIENT_IDS
-    if (backupRecipientIds) {
-        const recipientIds = backupRecipientIds
-            .split(',')
-            .map((id) => parseInt(id.trim()))
-            .filter((id) => !isNaN(id));
-
-        if (recipientIds.includes(userId)) {
-            buttons.push([Markup.button.callback('💾 Database Backup', 'database_backup')]);
-        }
-    }
-
+export const adminMenuKeyboard = (userId: number, configService: ConfigService) => {
+    const buttons = KeyboardBuilder.filterButtonsByGroup(adminMenuButtons, userId, configService);
     return Markup.inlineKeyboard(buttons);
 };

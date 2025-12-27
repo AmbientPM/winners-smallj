@@ -11,6 +11,7 @@ import * as path from 'path';
 import type { Context } from '../../interfaces/context.interface';
 import { IsAdminGuard } from '../../guards/is-admin.guard';
 import { IsPrivateGuard } from '../../guards/is-private.guard';
+import { IsInGroupGuard, UserGroup } from '../../guards/is-in-group.guard';
 import { MessageManager } from '../../utils/message-manager';
 
 const execAsync = promisify(exec);
@@ -41,7 +42,8 @@ export class AdminDatabaseBackupUpdate {
     }
 
     @Action('database_backup')
-    @UseGuards(IsPrivateGuard, IsAdminGuard)
+    @UseGuards(IsPrivateGuard, IsAdminGuard, IsInGroupGuard)
+    @UserGroup('BACKUP_RECIPIENT_IDS')
     async onDatabaseBackup(@Ctx() ctx: Context) {
         await ctx.answerCbQuery();
 

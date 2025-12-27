@@ -15,6 +15,7 @@ import { AdminDatabaseBackupUpdate } from './updates/admin/database-backup.updat
 
 import { IsAdminGuard } from './guards/is-admin.guard';
 import { IsPrivateGuard } from './guards/is-private.guard';
+import { IsInGroupGuard } from './guards/is-in-group.guard';
 import { UserMiddleware } from './middlewares/user.middleware';
 import { ActionLoggingMiddleware } from './middlewares/action-logging.middleware';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -41,6 +42,7 @@ import { ScheduleModule } from '@nestjs/schedule';
         AdminDatabaseBackupUpdate,
         IsAdminGuard,
         IsPrivateGuard,
+        IsInGroupGuard,
         UserMiddleware,
         ActionLoggingMiddleware,
     ],
