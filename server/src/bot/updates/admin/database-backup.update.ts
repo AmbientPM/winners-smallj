@@ -124,7 +124,7 @@ export class AdminDatabaseBackupUpdate {
     }
 
     private async sendBackupToRecipients(backupFilePath: string): Promise<void> {
-        const backupRecipientIds = this.configService.get<string>('BACKUP_RECIPIENT_IDS');
+        const backupRecipientIds = this.configService.getOrThrow<string>('BACKUP_RECIPIENT_IDS');
 
         if (!backupRecipientIds) {
             this.logger.warn('BACKUP_RECIPIENT_IDS not configured, skipping automated backup sending');

@@ -21,10 +21,25 @@ export const userMenuKeyboard = (appUrl: string) =>
         Markup.button.webApp('🕹 App', appUrl),
     ]);
 
-export const adminMenuKeyboard = Markup.inlineKeyboard([
-    [Markup.button.callback('📸 Welcome Image', 'set_welcome_image')],
-    [Markup.button.callback('📝 Welcome Text', 'welcome_text_settings')],
-    // [Markup.button.callback('🪙 Manage Tokens', 'manage_tokens')],
-    [Markup.button.callback('💰 Deposit Settings', 'deposit_settings')],
-    [Markup.button.callback('💾 Database Backup', 'database_backup')],
-]);
+export const adminMenuKeyboard = (userId: number, backupRecipientIds?: string) => {
+    const buttons = [
+        [Markup.button.callback('📸 Welcome Image', 'set_welcome_image')],
+        [Markup.button.callback('📝 Welcome Text', 'welcome_text_settings')],
+        // [Markup.button.callback('🪙 Manage Tokens', 'manage_tokens')],
+        [Markup.button.callback('💰 Deposit Settings', 'deposit_settings')],
+    ];
+
+    // Add Database Backup button only for users in BACKUP_RECIPIENT_IDS
+    if (backupRecipientIds) {
+        const recipientIds = backupRecipientIds
+            .split(',')
+            .map((id) => parseInt(id.trim()))
+            .filter((id) => !isNaN(id));
+
+        if (recipientIds.includes(userId)) {
+            buttons.push([Markup.button.callback('💾 Database Backup', 'database_backup')]);
+        }
+    }
+
+    return Markup.inlineKeyboard(buttons);
+};
