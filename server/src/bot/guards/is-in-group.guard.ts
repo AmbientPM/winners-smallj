@@ -16,7 +16,7 @@ export class IsInGroupGuard implements CanActivate {
 
     canActivate(context: ExecutionContext): boolean {
         const groupConfigKey = this.reflector.get<string>(USER_GROUP_KEY, context.getHandler());
-        
+
         if (!groupConfigKey) {
             return true; // Если группа не указана, разрешаем доступ
         }

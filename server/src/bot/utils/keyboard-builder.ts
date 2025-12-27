@@ -20,7 +20,7 @@ export class KeyboardBuilder {
                 }
 
                 const groupIds = configService.get<string>(button.group);
-                
+
                 if (!groupIds) {
                     return false; // Hide if group config not found
                 }
